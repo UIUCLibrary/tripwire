@@ -1,0 +1,6 @@
+commitizen
+coverage
+mypy
+pre-commit
+pytest
+ruff
