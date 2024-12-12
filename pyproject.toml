@@ -18,6 +18,9 @@ placeholder = "avtool.main:main"
 requires = ["setuptools>=75.1.0"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+packages = ["avtool"]
+
 [tool.commitizen]
 name = "cz_conventional_commits"
 tag_format = "v$version"

@@ -1,7 +1,12 @@
+standaloneVersions = []
+
 pipeline {
     agent none
     parameters{
         booleanParam(name: 'RUN_CHECKS', defaultValue: true, description: 'Run checks on code')
+        booleanParam(name: 'PACKAGE_STANDALONE_WINDOWS_INSTALLER', defaultValue: false, description: 'Create a standalone Windows version that does not require a user to install python first')
+        booleanParam(name: 'PACKAGE_MAC_OS_STANDALONE_X86_64', defaultValue: false, description: 'Create a standalone version for MacOS X86_64 (m1) machines')
+        booleanParam(name: 'PACKAGE_MAC_OS_STANDALONE_ARM64', defaultValue: false, description: 'Create a standalone version for MacOS ARM64 (Intel) machines')
     }
     stages {
         stage('Building and Resting'){
@@ -94,6 +99,125 @@ pipeline {
                                     [pattern: '**/__pycache__/', type: 'INCLUDE'],
                                 ]
                             )
+                        }
+                    }
+                }
+            }
+        }
+        stage('Package'){
+            stages{
+                stage('Standalone'){
+                    when{
+                        anyOf{
+                            equals expected: true, actual: params.PACKAGE_MAC_OS_STANDALONE_X86_64
+                            equals expected: true, actual: params.PACKAGE_MAC_OS_STANDALONE_ARM64
+                            equals expected: true, actual: params.PACKAGE_STANDALONE_WINDOWS_INSTALLER
+                        }
+                    }
+                    parallel{
+                        stage('Mac Application Bundle x86_64'){
+                            agent{
+                                label 'mac && python3.12 && x86_64'
+                            }
+                            when{
+                                equals expected: true, actual: params.PACKAGE_MAC_OS_STANDALONE_X86_64
+                                beforeAgent true
+                            }
+                            steps{
+                                sh 'UV_INDEX_STRATEGY=unsafe-best-match ./contrib/create_mac_distrib.sh'
+                            }
+                            post{
+                                success{
+                                    archiveArtifacts artifacts: 'dist/*.zip', fingerprint: true
+                                    stash includes: 'dist/*.zip', name: 'APPLE_APPLICATION_X86_64'
+                                    script{
+                                        standaloneVersions << 'APPLE_APPLICATION_X86_64'
+                                    }
+                                }
+                                cleanup{
+                                    sh "${tool(name: 'Default', type: 'git')} clean -dfx"
+                                    cleanWs(
+                                        deleteDirs: true,
+                                        patterns: [
+                                            [pattern: 'build/', type: 'INCLUDE'],
+                                            [pattern: 'dist/', type: 'INCLUDE'],
+                                            [pattern: '*.egg-info/', type: 'INCLUDE'],
+                                            [pattern: '**/__pycache__/', type: 'INCLUDE'],
+                                       ]
+                                    )
+                                }
+                            }
+                        }
+                        stage('Mac Application Bundle arm64'){
+                            agent{
+                                label 'mac && python3.12 && arm64'
+                            }
+                            when{
+                                equals expected: true, actual: params.PACKAGE_MAC_OS_STANDALONE_ARM64
+                                beforeAgent true
+                            }
+                            steps{
+                                sh 'UV_INDEX_STRATEGY=unsafe-best-match ./contrib/create_mac_distrib.sh'
+                            }
+                            post{
+                                success{
+                                    archiveArtifacts artifacts: 'dist/*.zip', fingerprint: true
+                                    stash includes: 'dist/*.zip', name: 'APPLE_APPLICATION_ARM64'
+                                    script{
+                                        standaloneVersions << 'APPLE_APPLICATION_ARM64'
+                                    }
+                                }
+                                cleanup{
+                                    sh "${tool(name: 'Default', type: 'git')} clean -dfx"
+                                    cleanWs(
+                                        deleteDirs: true,
+                                        patterns: [
+                                            [pattern: 'build/', type: 'INCLUDE'],
+                                            [pattern: 'dist/', type: 'INCLUDE'],
+                                            [pattern: '*.egg-info/', type: 'INCLUDE'],
+                                            [pattern: '**/__pycache__/', type: 'INCLUDE'],
+                                        ]
+                                    )
+                                }
+                            }
+                        }
+                        stage('Windows Application'){
+                            agent{
+                                docker{
+                                    image 'python'
+                                    label 'windows && docker && x86_64'
+                                }
+                            }
+                            when{
+                                equals expected: true, actual: params.PACKAGE_STANDALONE_WINDOWS_INSTALLER
+                                beforeAgent true
+                            }
+                            steps{
+                                bat(script: '''set UV_INDEX_STRATEGY=unsafe-best-match
+                                               contrib/create_windows_distrib.bat
+                                               '''
+                               )
+                            }
+                            post{
+                                success{
+                                    archiveArtifacts artifacts: 'dist/*.zip', fingerprint: true
+                                    stash includes: 'dist/*.zip', name: 'WINDOWS_APPLICATION_X86_64'
+                                    script{
+                                        standaloneVersions << 'WINDOWS_APPLICATION_X86_64'
+                                    }
+                                }
+                                cleanup{
+                                    cleanWs(
+                                        deleteDirs: true,
+                                        patterns: [
+                                            [pattern: 'build/', type: 'INCLUDE'],
+                                            [pattern: 'dist/', type: 'INCLUDE'],
+                                            [pattern: '*.egg-info/', type: 'INCLUDE'],
+                                            [pattern: '**/__pycache__/', type: 'INCLUDE'],
+                                        ]
+                                    )
+                                }
+                            }
                         }
                     }
                 }
