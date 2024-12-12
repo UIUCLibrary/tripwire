@@ -18,6 +18,9 @@ placeholder = "avtool.main:main"
 requires = ["setuptools>=75.1.0"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+packages = ["avtool"]
+
 [tool.commitizen]
 name = "cz_conventional_commits"
 tag_format = "v$version"
@@ -25,3 +28,11 @@ version_scheme = "pep440"
 version_provider = "pep621"
 update_changelog_on_bump = true
 major_version_zero = true
+
+[tool.tox]
+envlist = ["3.11", "3.12", "3.13"]
+
+[tool.tox.env_run_base]
+description = "Run test under {base_python}"
+commands = [["{env_bin_dir}{/}pytest"]]
+deps = ["-r requirements-dev.txt"]
