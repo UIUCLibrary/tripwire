@@ -347,6 +347,9 @@ def call(){
                                 equals expected: true, actual: params.PACKAGE_STANDALONE_WINDOWS_INSTALLER
                             }
                         }
+                        environment{
+                            UV_INDEX_STRATEGY='unsafe-best-match'
+                        }
                         parallel{
                             stage('Mac Application Bundle x86_64'){
                                 agent{
@@ -357,7 +360,7 @@ def call(){
                                     beforeAgent true
                                 }
                                 steps{
-                                    sh 'UV_INDEX_STRATEGY=unsafe-best-match ./contrib/create_mac_distrib.sh'
+                                    sh './contrib/create_mac_distrib.sh'
                                 }
                                 post{
                                     success{
@@ -390,7 +393,7 @@ def call(){
                                     beforeAgent true
                                 }
                                 steps{
-                                    sh 'UV_INDEX_STRATEGY=unsafe-best-match ./contrib/create_mac_distrib.sh'
+                                    sh './contrib/create_mac_distrib.sh'
                                 }
                                 post{
                                     success{
@@ -426,10 +429,7 @@ def call(){
                                     beforeAgent true
                                 }
                                 steps{
-                                    bat(script: '''set UV_INDEX_STRATEGY=unsafe-best-match
-                                                   contrib/create_windows_distrib.bat
-                                                   '''
-                                   )
+                                    bat(script: 'contrib/create_windows_distrib.bat')
                                 }
                                 post{
                                     success{
