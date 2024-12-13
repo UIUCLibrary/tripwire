@@ -1,3 +1,49 @@
+def getStandAloneStorageServers(){
+    retry(conditions: [agent()], count: 3) {
+        node(){
+            configFileProvider([configFile(fileId: 'deploymentStorageConfig', variable: 'CONFIG_FILE')]) {
+                def config = readJSON( file: CONFIG_FILE)
+                return config['publicReleases']['urls']
+            }
+        }
+    }
+}
+
+def getPypiConfig() {
+    retry(conditions: [agent()], count: 3) {
+        node(){
+            configFileProvider([configFile(fileId: 'pypi_config', variable: 'CONFIG_FILE')]) {
+                def config = readJSON( file: CONFIG_FILE)
+                return config['deployment']['indexes']
+            }
+        }
+    }
+}
+
+def getDefaultStandalonePath(){
+    node(){
+        checkout scm
+        def projectMetadata = readTOML( file: 'pyproject.toml')['project']
+        return "${projectMetadata.name}/${projectMetadata.version}"
+    }
+}
+
+def deployStandalone(glob, url) {
+    script{
+        findFiles(glob: glob).each{
+            try{
+                def encodedUrlFileName = new URI(null, null, it.name, null).toASCIIString()
+                def putResponse = httpRequest authentication: NEXUS_CREDS, httpMode: 'PUT', uploadFile: it.path, url: "${url}/${encodedUrlFileName}", wrapAsMultipart: false
+                echo "http request response: ${putResponse.content}"
+                echo "Deployed ${it} -> SHA256: ${sha256(it.path)}"
+            } catch(Exception e){
+                echo "${e}"
+                throw e;
+            }
+        }
+    }
+}
+
 def call(){
     def standaloneVersions = []
     pipeline {
@@ -14,6 +60,8 @@ def call(){
             booleanParam(name: 'PACKAGE_STANDALONE_WINDOWS_INSTALLER', defaultValue: false, description: 'Create a standalone Windows version that does not require a user to install python first')
             booleanParam(name: 'PACKAGE_MAC_OS_STANDALONE_X86_64', defaultValue: false, description: 'Create a standalone version for MacOS X86_64 (m1) machines')
             booleanParam(name: 'PACKAGE_MAC_OS_STANDALONE_ARM64', defaultValue: false, description: 'Create a standalone version for MacOS ARM64 (Intel) machines')
+            booleanParam(name: 'DEPLOY_PYPI', defaultValue: false, description: 'Deploy to pypi')
+            booleanParam(name: 'DEPLOY_STANDALONE_PACKAGERS', defaultValue: false, description: 'Deploy standalone packages')
         }
         stages {
             stage('Building and Resting'){
@@ -401,6 +449,130 @@ def call(){
                                                 [pattern: '**/__pycache__/', type: 'INCLUDE'],
                                             ]
                                         )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            stage('Deploy'){
+                when{
+                    anyOf{
+                        equals expected: true, actual: params.DEPLOY_STANDALONE_PACKAGERS
+                        equals expected: true, actual: params.DEPLOY_PYPI
+                    }
+                }
+                parallel{
+                    stage('Deploy to pypi') {
+                        environment{
+                            PIP_CACHE_DIR='/tmp/pipcache'
+                            UV_INDEX_STRATEGY='unsafe-best-match'
+                            UV_TOOL_DIR='/tmp/uvtools'
+                            UV_PYTHON_INSTALL_DIR='/tmp/uvpython'
+                            UV_CACHE_DIR='/tmp/uvcache'
+                        }
+                        agent {
+                            docker{
+                                image 'python'
+                                label 'docker && linux'
+                            }
+                        }
+                        when{
+                            allOf{
+                                equals expected: true, actual: params.DEPLOY_PYPI
+                                equals expected: true, actual: params.BUILD_PACKAGES
+                            }
+                            beforeAgent true
+                            beforeInput true
+                        }
+                        options{
+                            retry(3)
+                        }
+                        input {
+                            message 'Upload to pypi server?'
+                            parameters {
+                                choice(
+                                    choices: getPypiConfig(),
+                                    description: 'Url to the pypi index to upload python packages.',
+                                    name: 'SERVER_URL'
+                                )
+                            }
+                        }
+                        steps{
+                            unstash 'PYTHON_PACKAGES'
+                            withEnv(
+                                [
+                                    "TWINE_REPOSITORY_URL=${SERVER_URL}",
+                                ]
+                            ){
+                                withCredentials(
+                                    [
+                                        usernamePassword(
+                                            credentialsId: 'jenkins-nexus',
+                                            passwordVariable: 'TWINE_PASSWORD',
+                                            usernameVariable: 'TWINE_USERNAME'
+                                        )
+                                    ]
+                                ){
+                                    sh(
+                                        label: 'Uploading to pypi',
+                                        script: '''python3 -m venv venv
+                                                   trap "rm -rf venv" EXIT
+                                                   . ./venv/bin/activate
+                                                   pip install --disable-pip-version-check uv
+                                                   uvx --with-requirements=requirements-dev.txt twine upload --disable-progress-bar --non-interactive dist/*
+                                                '''
+                                    )
+                                }
+                            }
+                        }
+                        post{
+                            cleanup{
+                                cleanWs(
+                                    deleteDirs: true,
+                                    patterns: [
+                                            [pattern: 'dist/', type: 'INCLUDE']
+                                        ]
+                                )
+                            }
+                        }
+                    }
+                    stage('Deploy Standalone'){
+                        when {
+                            allOf{
+                                expression{return standaloneVersions.size() > 0}
+                                equals expected: true, actual: params.DEPLOY_STANDALONE_PACKAGERS
+                                anyOf{
+                                    equals expected: true, actual: params.PACKAGE_MAC_OS_STANDALONE_X86_64
+                                    equals expected: true, actual: params.PACKAGE_MAC_OS_STANDALONE_ARM64
+                                    equals expected: true, actual: params.PACKAGE_STANDALONE_WINDOWS_INSTALLER
+                                }
+                            }
+                            beforeAgent true
+                            beforeInput true
+                        }
+                        input {
+                            message 'Upload to Nexus server?'
+                            parameters {
+                                credentials credentialType: 'com.cloudbees.plugins.credentials.common.StandardCredentials', defaultValue: 'jenkins-nexus', name: 'NEXUS_CREDS', required: true
+                                choice(
+                                    choices: getStandAloneStorageServers(),
+                                    description: 'Url to upload artifact.',
+                                    name: 'SERVER_URL'
+                                )
+                                string defaultValue: getDefaultStandalonePath(), description: 'subdirectory to store artifact', name: 'archiveFolder'
+                            }
+                        }
+                        stages{
+                            stage('Deploy Standalone Applications'){
+                                agent any
+                                steps{
+                                    script{
+                                        standaloneVersions.each{
+                                            unstash "${it}"
+                                        }
+                                        deployStandalone('dist/*.zip', "${SERVER_URL}/${archiveFolder}")
                                     }
                                 }
                             }
