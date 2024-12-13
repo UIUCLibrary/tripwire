@@ -4,7 +4,7 @@ set -e
 
 FREEZE_SCRIPT=$(dirname "$0")/create_standalone.py
 
-DEFAULT_BUILD_VENV=build/build_standalone_build_env
+DEFAULT_BUILD_VENV=$(mktemp -d)
 
 default_python_path=$(which python3)
 
@@ -14,7 +14,7 @@ create_standalone(){
     echo 'create_standalone'
     shift;
 
-#     Generates the galatea.egg-info needed for the version metadata
+#     Generates the .egg-info needed for the version metadata
     $uv_path build --wheel
 
     $uv_path run $FREEZE_SCRIPT avtool ./avtool/__main__.py
@@ -26,7 +26,7 @@ create_venv() {
     venv_path=$2
     $base_python_path -m venv $venv_path
     . $venv_path/bin/activate
-    python -m pip install uv
+    python -m pip install --disable-pip-version-check uv
     deactivate
 }
 
@@ -36,6 +36,7 @@ then
     python_path=$default_python_path
 
     create_venv $python_path $build_venv
+    trap "rm -rf $build_venv" EXIT
     uv_exec="$build_venv/bin/uv"
 else
     uv_exec=$(which uv)
