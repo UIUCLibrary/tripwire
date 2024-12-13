@@ -182,9 +182,10 @@ def call(){
                                 steps{
                                     sh(
                                         label: 'Package',
-                                        script: '''python3 -m venv venv && venv/bin/pip install --disable-pip-version-check uv
-                                                   . ./venv/bin/activate
-                                                   uv build
+                                        script: '''python3 -m venv
+                                                   trap "rm -rf venv" EXIT
+                                                   venv/bin/pip install --disable-pip-version-check uv
+                                                   venv/bin/uv build
                                                 '''
                                     )
                                 }
