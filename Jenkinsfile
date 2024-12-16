@@ -175,7 +175,6 @@ pipeline {
                                 docker {
                                     image 'python'
                                     label 'docker && linux'
-                                    args '--mount source=uv_python_install_dir,target=/tmp/uvpython'
                                 }
                             }
                             steps{
@@ -254,7 +253,7 @@ pipeline {
                                             unstash 'PYTHON_PACKAGES'
                                             script{
                                                if(['linux', 'windows'].contains(OS) && params.containsKey("INCLUDE_${OS}-${ARCHITECTURE}".toUpperCase()) && params["INCLUDE_${OS}-${ARCHITECTURE}".toUpperCase()]){
-                                                   docker.image('python').inside("--mount source=uv_python_install_dir,target=${isUnix() ? '/tmp/uvpython:z': 'C:\\Users\\ContainerUser\\Documents\\uvpython'}"){
+                                                   docker.image('python').inside(isUnix() ? '': "--mount type=volume,source=uv_python_install_dir,target=C:\\Users\\ContainerUser\\Documents\\uvpython"){
                                                         if(isUnix()){
                                                            withEnv([
                                                                'PIP_CACHE_DIR=/tmp/pipcache',
