@@ -405,38 +405,44 @@ pipeline {
                             environment{
                                 UV_PYTHON_INSTALL_DIR='C:\\Users\\ContainerUser\\Documents\\uvpython'
                             }
-                            agent{
-                                docker{
-                                    image 'python'
-                                    label 'windows && docker && x86_64'
-                                    args '--mount source=uv_python_install_dir,target=C:\\Users\\ContainerUser\\Documents\\uvpython'
-                                }
-                            }
-                            when{
-                                equals expected: true, actual: params.PACKAGE_STANDALONE_WINDOWS_INSTALLER
-                                beforeAgent true
-                            }
-                            steps{
-                                bat(script: 'contrib/create_windows_distrib.bat')
-                            }
-                            post{
-                                success{
-                                    archiveArtifacts artifacts: 'dist/*.zip', fingerprint: true
-                                    stash includes: 'dist/*.zip', name: 'WINDOWS_APPLICATION_X86_64'
-                                    script{
-                                        standaloneVersions << 'WINDOWS_APPLICATION_X86_64'
+                            stages{
+                                stage('Package'){
+
+                                    agent{
+                                        docker{
+                                            image 'python'
+                                            label 'windows && docker && x86_64'
+                                            args '--mount source=uv_python_install_dir,target=C:\\Users\\ContainerUser\\Documents\\uvpython'
+                                        }
                                     }
-                                }
-                                cleanup{
-                                    cleanWs(
-                                        deleteDirs: true,
-                                        patterns: [
-                                            [pattern: 'build/', type: 'INCLUDE'],
-                                            [pattern: 'dist/', type: 'INCLUDE'],
-                                            [pattern: '*.egg-info/', type: 'INCLUDE'],
-                                            [pattern: '**/__pycache__/', type: 'INCLUDE'],
-                                        ]
-                                    )
+                                    when{
+                                        equals expected: true, actual: params.PACKAGE_STANDALONE_WINDOWS_INSTALLER
+                                        beforeAgent true
+                                    }
+                                    steps{
+                                        bat(script: 'contrib/create_windows_distrib.bat')
+                                        powershell(script: 'Get-Content -Path "build/standalone_distribution/CPackConfig.cmake" ' )
+                                    }
+                                    post{
+                                        success{
+                                            archiveArtifacts artifacts: 'dist/*.zip', fingerprint: true
+                                            stash includes: 'dist/*.zip', name: 'WINDOWS_APPLICATION_X86_64'
+                                            script{
+                                                standaloneVersions << 'WINDOWS_APPLICATION_X86_64'
+                                            }
+                                        }
+                                        cleanup{
+                                            cleanWs(
+                                                deleteDirs: true,
+                                                patterns: [
+                                                    [pattern: 'build/', type: 'INCLUDE'],
+                                                    [pattern: 'dist/', type: 'INCLUDE'],
+                                                    [pattern: '*.egg-info/', type: 'INCLUDE'],
+                                                    [pattern: '**/__pycache__/', type: 'INCLUDE'],
+                                                ]
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
