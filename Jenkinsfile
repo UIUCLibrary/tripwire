@@ -407,7 +407,6 @@ pipeline {
                             }
                             stages{
                                 stage('Package'){
-
                                     agent{
                                         docker{
                                             image 'python'
@@ -421,7 +420,6 @@ pipeline {
                                     }
                                     steps{
                                         bat(script: 'contrib/create_windows_distrib.bat')
-                                        powershell(script: 'Get-Content -Path "build/standalone_distribution/CPackConfig.cmake" ' )
                                     }
                                     post{
                                         success{
@@ -439,6 +437,32 @@ pipeline {
                                                     [pattern: 'dist/', type: 'INCLUDE'],
                                                     [pattern: '*.egg-info/', type: 'INCLUDE'],
                                                     [pattern: '**/__pycache__/', type: 'INCLUDE'],
+                                                ]
+                                            )
+                                        }
+                                    }
+                                }
+                                stage('Test package'){
+                                    agent {
+                                        docker {
+                                            image 'mcr.microsoft.com/windows/servercore:ltsc2019'
+                                            label 'windows && docker && x86_64'
+                                        }
+                                    }
+                                    options {
+                                        skipDefaultCheckout true
+                                    }
+                                    steps{
+                                        unstash 'WINDOWS_APPLICATION_X86_64'
+                                        unzip(zipFile: "${findFiles(glob: 'dist/*.zip')[0]}", dir: 'dist/avtool')
+                                        bat "${findFiles(glob: 'dist/avtool/**/avtool.exe')[0]}"
+                                    }
+                                    post{
+                                        cleanup{
+                                            cleanWs(
+                                                deleteDirs: true,
+                                                patterns: [
+                                                    [pattern: 'dist/', type: 'INCLUDE'],
                                                 ]
                                             )
                                         }
