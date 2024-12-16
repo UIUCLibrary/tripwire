@@ -30,7 +30,7 @@ a = Analysis(
     binaries=[],
     datas=[],
     hiddenimports=[],
-    hookspath=['%(hooks_path)s'],
+    hookspath=[%(hooks_path)r],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
@@ -90,7 +90,7 @@ def generate_spec_file(output_file: str, script_name: str, entry_point: str):
     specs = {
         "entry_points": [entry_point],
         "name": script_name,
-        "hooks_path": pathlib.Path(__file__).parent / "hooks",
+        "hooks_path": f'{pathlib.Path(__file__).parent / "hooks"}',
     }
     specs_files = pathlib.Path(output_file)
     dist_path = specs_files.parent
@@ -147,7 +147,7 @@ class GenerateCPackConfig(abc.ABC):
         lines.append(f'set(CPACK_PACKAGE_VERSION_PATCH "{version_parser.micro}")')
 
         lines.append(
-            f'set(CPACK_INSTALLED_DIRECTORIES "{os.path.abspath(self.source_package_path)}" "{self.install_path_name}")'
+            f'set(CPACK_INSTALLED_DIRECTORIES "{os.path.abspath(self.source_package_path).encode("unicode_escape").decode()}" "{self.install_path_name}")'
         )
         if sys.platform == "darwin":
             lines.append(
