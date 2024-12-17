@@ -646,6 +646,7 @@ pipeline {
                                         unstash "${it}"
                                     }
                                     deployStandalone('dist/*.zip', "${SERVER_URL}/${archiveFolder}")
+                                    deployStandalone('dist/*.tar.gz', "${SERVER_URL}/${archiveFolder}")
                                 }
                             }
                         }
