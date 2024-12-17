@@ -336,68 +336,122 @@ pipeline {
                     }
                     parallel{
                         stage('Mac Application Bundle x86_64'){
-                            agent{
-                                label 'mac && python3.12 && x86_64'
-                            }
-                            when{
-                                equals expected: true, actual: params.PACKAGE_MAC_OS_STANDALONE_X86_64
-                                beforeAgent true
-                            }
-                            steps{
-                                sh './contrib/create_mac_distrib.sh'
-                            }
-                            post{
-                                success{
-                                    archiveArtifacts artifacts: 'dist/*.zip', fingerprint: true
-                                    stash includes: 'dist/*.zip', name: 'APPLE_APPLICATION_X86_64'
-                                    script{
-                                        standaloneVersions << 'APPLE_APPLICATION_X86_64'
+                            stages{
+                                stage('Package'){
+                                    agent{
+                                        label 'mac && python3.12 && x86_64'
+                                    }
+                                    when{
+                                        equals expected: true, actual: params.PACKAGE_MAC_OS_STANDALONE_X86_64
+                                        beforeAgent true
+                                    }
+                                    steps{
+                                        sh './contrib/create_mac_distrib.sh'
+                                    }
+                                    post{
+                                        success{
+                                            archiveArtifacts artifacts: 'dist/*.tar.gz', fingerprint: true
+                                            stash includes: 'dist/*.tar.gz', name: 'APPLE_APPLICATION_X86_64'
+                                            script{
+                                                standaloneVersions << 'APPLE_APPLICATION_X86_64'
+                                            }
+                                        }
+                                        cleanup{
+                                            sh "${tool(name: 'Default', type: 'git')} clean -dfx"
+                                            cleanWs(
+                                                deleteDirs: true,
+                                                patterns: [
+                                                    [pattern: 'build/', type: 'INCLUDE'],
+                                                    [pattern: 'dist/', type: 'INCLUDE'],
+                                                    [pattern: '*.egg-info/', type: 'INCLUDE'],
+                                                    [pattern: '**/__pycache__/', type: 'INCLUDE'],
+                                                ]
+                                            )
+                                        }
                                     }
                                 }
-                                cleanup{
-                                    sh "${tool(name: 'Default', type: 'git')} clean -dfx"
-                                    cleanWs(
-                                        deleteDirs: true,
-                                        patterns: [
-                                            [pattern: 'build/', type: 'INCLUDE'],
-                                            [pattern: 'dist/', type: 'INCLUDE'],
-                                            [pattern: '*.egg-info/', type: 'INCLUDE'],
-                                            [pattern: '**/__pycache__/', type: 'INCLUDE'],
-                                       ]
-                                    )
+                                stage('Test'){
+                                    agent{
+                                        label 'mac && x86_64'
+                                    }
+                                    options {
+                                        skipDefaultCheckout true
+                                    }
+                                    steps{
+                                        unstash 'APPLE_APPLICATION_X86_64'
+                                        untar(file: "${findFiles(glob: 'dist/*.tar.gz')[0]}", dir: 'dist/out')
+                                        sh "${findFiles(glob: 'dist/out/**/avtool')[0].path}"
+                                    }
+                                    post{
+                                        cleanup{
+                                           cleanWs(
+                                                 deleteDirs: true,
+                                                 patterns: [
+                                                     [pattern: 'dist/', type: 'INCLUDE'],
+                                                 ]
+                                             )
+                                        }
+                                    }
                                 }
                             }
                         }
                         stage('Mac Application Bundle arm64'){
-                            agent{
-                                label 'mac && python3.12 && arm64'
-                            }
                             when{
                                 equals expected: true, actual: params.PACKAGE_MAC_OS_STANDALONE_ARM64
                                 beforeAgent true
                             }
-                            steps{
-                                sh './contrib/create_mac_distrib.sh'
-                            }
-                            post{
-                                success{
-                                    archiveArtifacts artifacts: 'dist/*.zip', fingerprint: true
-                                    stash includes: 'dist/*.zip', name: 'APPLE_APPLICATION_ARM64'
-                                    script{
-                                        standaloneVersions << 'APPLE_APPLICATION_ARM64'
+                            stages{
+                                stage('Package'){
+                                    agent{
+                                        label 'mac && python3.12 && arm64'
+                                    }
+                                    steps{
+                                        sh './contrib/create_mac_distrib.sh'
+                                    }
+                                    post{
+                                        success{
+                                            archiveArtifacts artifacts: 'dist/*.tar.gz', fingerprint: true
+                                            stash includes: 'dist/*.tar.gz', name: 'APPLE_APPLICATION_ARM64'
+                                            script{
+                                                standaloneVersions << 'APPLE_APPLICATION_ARM64'
+                                            }
+                                        }
+                                        cleanup{
+                                            sh "${tool(name: 'Default', type: 'git')} clean -dfx"
+                                            cleanWs(
+                                                deleteDirs: true,
+                                                patterns: [
+                                                    [pattern: 'build/', type: 'INCLUDE'],
+                                                    [pattern: 'dist/', type: 'INCLUDE'],
+                                                    [pattern: '*.egg-info/', type: 'INCLUDE'],
+                                                    [pattern: '**/__pycache__/', type: 'INCLUDE'],
+                                                ]
+                                            )
+                                        }
                                     }
                                 }
-                                cleanup{
-                                    sh "${tool(name: 'Default', type: 'git')} clean -dfx"
-                                    cleanWs(
-                                        deleteDirs: true,
-                                        patterns: [
-                                            [pattern: 'build/', type: 'INCLUDE'],
-                                            [pattern: 'dist/', type: 'INCLUDE'],
-                                            [pattern: '*.egg-info/', type: 'INCLUDE'],
-                                            [pattern: '**/__pycache__/', type: 'INCLUDE'],
-                                        ]
-                                    )
+                                stage('Test'){
+                                    agent{
+                                        label 'mac && arm64'
+                                    }
+                                    options {
+                                        skipDefaultCheckout true
+                                    }
+                                    steps{
+                                        unstash 'APPLE_APPLICATION_ARM64'
+                                        untar(file: "${findFiles(glob: 'dist/*.tar.gz')[0]}", dir: 'dist/out')
+                                        sh "${findFiles(glob: 'dist/out/**/avtool')[0].path}"
+                                    }
+                                    post{
+                                        cleanup{
+                                           cleanWs(
+                                                 deleteDirs: true,
+                                                 patterns: [
+                                                     [pattern: 'dist/', type: 'INCLUDE'],
+                                                 ]
+                                             )
+                                        }
+                                    }
                                 }
                             }
                         }
