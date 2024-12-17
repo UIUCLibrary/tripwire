@@ -405,6 +405,10 @@ pipeline {
                             environment{
                                 UV_PYTHON_INSTALL_DIR='C:\\Users\\ContainerUser\\Documents\\uvpython'
                             }
+                            when{
+                                equals expected: true, actual: params.PACKAGE_STANDALONE_WINDOWS_INSTALLER
+                                beforeAgent true
+                            }
                             stages{
                                 stage('Package'){
                                     agent{
@@ -413,10 +417,6 @@ pipeline {
                                             label 'windows && docker && x86_64'
                                             args '--mount source=uv_python_install_dir,target=C:\\Users\\ContainerUser\\Documents\\uvpython'
                                         }
-                                    }
-                                    when{
-                                        equals expected: true, actual: params.PACKAGE_STANDALONE_WINDOWS_INSTALLER
-                                        beforeAgent true
                                     }
                                     steps{
                                         bat(script: 'contrib/create_windows_distrib.bat')
