@@ -24,6 +24,8 @@ iniconfig==2.0.0
     # via pytest
 jinja2==3.1.4
     # via commitizen
+lxml==5.3.0
+    # via -r requirements/requirements-dev.in
 markupsafe==3.0.2
     # via jinja2
 mypy==1.13.0

@@ -150,6 +150,23 @@ pipeline {
                                         }
                                     }
                                 }
+                                stage('MyPy'){
+                                    steps{
+                                        catchError(buildResult: 'SUCCESS', message: 'MyPy found issues', stageResult: 'UNSTABLE') {
+                                            tee('logs/mypy.log'){
+                                                sh(label: 'Running MyPy',
+                                                   script: '. ./venv/bin/activate && mypy -p avtool --html-report reports/mypy/html'
+                                                )
+                                            }
+                                        }
+                                    }
+                                    post {
+                                        always {
+                                            recordIssues(tools: [myPy(pattern: 'logs/mypy.log')])
+                                            publishHTML([allowMissing: true, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports/mypy/html/', reportFiles: 'index.html', reportName: 'MyPy HTML Report', reportTitles: ''])
+                                        }
+                                    }
+                                }
                             }
                             post{
                                 always{
