@@ -129,7 +129,7 @@ pipeline {
                                 }
                                 stage('Task Scanner'){
                                     steps{
-                                        recordIssues(tools: [taskScanner(highTags: 'FIXME', includePattern: 'speedwagon/**/*.py', normalTags: 'TODO')])
+                                        recordIssues(tools: [taskScanner(highTags: 'FIXME', includePattern: 'avtool/**/*.py', normalTags: 'TODO')])
                                     }
                                 }
                             }
