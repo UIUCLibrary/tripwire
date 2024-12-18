@@ -1,3 +1,3 @@
-from PyInstaller.utils.hooks import copy_metadata, collect_all
+from PyInstaller.utils.hooks import copy_metadata
 
 datas = copy_metadata("avtool", recursive=True)
