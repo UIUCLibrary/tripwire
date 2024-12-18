@@ -111,7 +111,7 @@ pipeline {
                                 beforeAgent true
                             }
                             parallel {
-                                stage('Run PyTest Unit Tests'){
+                                stage('PyTest'){
                                     steps{
                                         catchError(buildResult: 'UNSTABLE', message: 'Did not pass all pytest tests', stageResult: 'UNSTABLE') {
                                             sh(
