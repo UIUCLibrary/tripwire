@@ -8,3 +8,9 @@ from avtool import main
 def test_sub_commands(cli_args, expected_subcommand):
     args = main.get_arg_parser().parse_args(cli_args)
     assert args.subcommand == expected_subcommand
+
+
+def test_calling_version_flag_exits_with_zero():
+    with pytest.raises(SystemExit) as e:
+        main.get_arg_parser().parse_args(["--version"])
+    assert e.value.code == 0
