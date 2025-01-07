@@ -417,7 +417,7 @@ pipeline {
                                     steps{
                                         unstash 'APPLE_APPLICATION_X86_64'
                                         untar(file: "${findFiles(glob: 'dist/*.tar.gz')[0]}", dir: 'dist/out')
-                                        sh "${findFiles(glob: 'dist/out/**/avtool')[0].path}"
+                                        sh "${findFiles(glob: 'dist/out/**/avtool')[0].path} --help"
                                     }
                                     post{
                                         cleanup{
@@ -477,7 +477,7 @@ pipeline {
                                     steps{
                                         unstash 'APPLE_APPLICATION_ARM64'
                                         untar(file: "${findFiles(glob: 'dist/*.tar.gz')[0]}", dir: 'dist/out')
-                                        sh "${findFiles(glob: 'dist/out/**/avtool')[0].path}"
+                                        sh "${findFiles(glob: 'dist/out/**/avtool')[0].path} --help"
                                     }
                                     post{
                                         cleanup{
@@ -546,7 +546,7 @@ pipeline {
                                     steps{
                                         unstash 'WINDOWS_APPLICATION_X86_64'
                                         unzip(zipFile: "${findFiles(glob: 'dist/*.zip')[0]}", dir: 'dist/avtool')
-                                        bat "${findFiles(glob: 'dist/avtool/**/avtool.exe')[0]}"
+                                        bat "${findFiles(glob: 'dist/avtool/**/avtool.exe')[0]} --help"
                                     }
                                     post{
                                         cleanup{

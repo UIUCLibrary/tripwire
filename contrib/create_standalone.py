@@ -133,7 +133,9 @@ class GenerateCPackConfig(abc.ABC):
     def create_boilerplate_config(self) -> str:
         cpack_package_name = "avtool"
         version = self.metadata["CPACK_PACKAGE_VERSION"]
-        package_description = self.metadata.get("CPACK_PACKAGE_DESCRIPTION", "")
+        package_description = self.metadata.get(
+            "CPACK_PACKAGE_DESCRIPTION", ""
+        )
         if package_description == "":
             logger.warning("No description provided")
 
@@ -144,9 +146,15 @@ class GenerateCPackConfig(abc.ABC):
             f'set(CPACK_PACKAGE_VERSION "{version}")',
         ]
         version_parser = packaging.version.Version(version)
-        lines.append(f'set(CPACK_PACKAGE_VERSION_MAJOR "{version_parser.major}")')
-        lines.append(f'set(CPACK_PACKAGE_VERSION_MINOR "{version_parser.minor}")')
-        lines.append(f'set(CPACK_PACKAGE_VERSION_PATCH "{version_parser.micro}")')
+        lines.append(
+            f'set(CPACK_PACKAGE_VERSION_MAJOR "{version_parser.major}")'
+        )
+        lines.append(
+            f'set(CPACK_PACKAGE_VERSION_MINOR "{version_parser.minor}")'
+        )
+        lines.append(
+            f'set(CPACK_PACKAGE_VERSION_PATCH "{version_parser.micro}")'
+        )
 
         lines.append(
             f'set(CPACK_INSTALLED_DIRECTORIES "{os.path.abspath(self.source_package_path).encode("unicode_escape").decode()}" "{self.install_path_name}")'
@@ -177,15 +185,17 @@ def package_with_cpack(build_path, dist, package_metadata, cpack_generator):
             dist, version_number=package_metadata["version"]
         )
         if "output_path" in package_metadata:
-            cpack_file_generator.metadata["CPACK_PACKAGE_DIRECTORY"] = package_metadata[
-                "output_path"
-            ]
+            cpack_file_generator.metadata["CPACK_PACKAGE_DIRECTORY"] = (
+                package_metadata["output_path"]
+            )
         cpack_file_generator.metadata["CPACK_PACKAGE_DESCRIPTION"] = (
             package_metadata.get("description", "")
         )
         f.write(cpack_file_generator.build())
     cpack_cmd = shutil.which("cpack", path=cmake.CMAKE_BIN_DIR)
-    subprocess.check_call([cpack_cmd, "--config", cpack_file, "-G", cpack_generator])
+    subprocess.check_call(
+        [cpack_cmd, "--config", cpack_file, "-G", cpack_generator]
+    )
 
 
 def package_with_system_zip(build_path, dist, package_metadata):
@@ -238,7 +248,9 @@ def package_with_builtin_zip(build_path, dist, package_metadata):
     print(f"Created {zip_file_path}")
 
 
-def package_distribution(dist, build_path, metadata_strategy, package_strategy):
+def package_distribution(
+    dist, build_path, metadata_strategy, package_strategy
+):
     package_metadata = metadata_strategy()
     package_strategy(build_path, dist, package_metadata)
 
@@ -252,7 +264,9 @@ def main():
         entry_point=os.path.abspath(args.entry_point),
     )
     create_standalone(
-        specs_file, dist=args.dest, work_path=os.path.join(args.build_path, "work_path")
+        specs_file,
+        dist=args.dest,
+        work_path=os.path.join(args.build_path, "work_path"),
     )
     dist = find_standalone_distrib(name=args.command_name, path=args.dest)
     if dist is None:
