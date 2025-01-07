@@ -29,6 +29,9 @@ version_provider = "pep621"
 update_changelog_on_bump = true
 major_version_zero = true
 
+[tool.ruff]
+line-length = 79
+
 [tool.tox]
 envlist = ["3.11", "3.12", "3.13"]
 
