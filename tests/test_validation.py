@@ -34,6 +34,8 @@ def test_get_file_hash(monkeypatch):
     file_path = Mock()
     file_path.open = MagicMock()
     validation.get_file_hash(
-        file_path, hashing_algorithm=hashlib.md5, hashing_strategy=hashing_strategy
+        file_path,
+        hashing_algorithm=hashlib.md5,
+        hashing_strategy=hashing_strategy,
     )
     assert hashing_strategy.called

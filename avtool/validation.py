@@ -23,7 +23,7 @@ def get_hash_from_file_pointer(
     pointer.seek(0, io.SEEK_END)
     size = pointer.tell() - starting_point
     pointer.seek(starting_point)
-    while chunk := pointer.read(item_hash.block_size):
+    while chunk := pointer.read(item_hash.block_size * 128):
         item_hash.update(chunk)
         if progress_reporter:
             progress_from_start = pointer.tell() - starting_point

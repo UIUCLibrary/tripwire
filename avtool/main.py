@@ -1,6 +1,10 @@
 import argparse
 import hashlib
+import multiprocessing
 import pathlib
+
+from tqdm import tqdm
+
 from avtool import validation
 
 SUPPORTED_ALGORITHMS = {
@@ -10,16 +14,38 @@ SUPPORTED_ALGORITHMS = {
 }
 
 
+class ProgressBar(tqdm):
+    def __init__(self, total, *args, **kwargs):
+        super().__init__(total, *args, **kwargs)
+        self.total = total
+
+    def set_progress(self, position: float) -> None:
+        if self.n < position:
+            self.update(position - self.n)
+        elif self.n > position:
+            self.n = position
+            self.update(0)
+        if position == self.total:
+            self.refresh()
+
+
 def get_hash_command(args: argparse.Namespace) -> None:
+    progress_bar = ProgressBar(
+        total=100.0,
+        leave=False,
+        bar_format="{percentage:3.0f}% |{bar}| Time Remaining: {remaining}",
+    )
+
     def print_progress(value: float) -> None:
-        print(f"\rProgress: {value:.1f}%", end="")
+        progress_bar.set_progress(value)
 
     result = validation.get_file_hash(
         args.file_path,
         hashing_algorithm=SUPPORTED_ALGORITHMS[args.hashing_algorithm],
         progress_reporter=print_progress,
     )
-    print(f"\n{args.file_path} -> {result}")
+    progress_bar.close()
+    print(f"\n{args.file_path} --> {args.hashing_algorithm}: {result}")
 
 
 def get_arg_parser() -> argparse.ArgumentParser:
@@ -33,12 +59,14 @@ def get_arg_parser() -> argparse.ArgumentParser:
         "--hashing_algorithm",
         type=str,
         default="md5",
+        help="hashing algorithm to use (default: %(default)s)",
         choices=SUPPORTED_ALGORITHMS.keys(),
     )
     return parser
 
 
-def main():
+def main() -> None:
+    multiprocessing.freeze_support()
     parser = get_arg_parser()
     args = parser.parse_args()
     if args.subcommand == "get-hash":
