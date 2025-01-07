@@ -5,7 +5,7 @@ import pathlib
 
 from tqdm import tqdm
 
-from avtool import validation
+from avtool import validation, utils
 
 SUPPORTED_ALGORITHMS = {
     "md5": hashlib.md5,
@@ -50,6 +50,12 @@ def get_hash_command(args: argparse.Namespace) -> None:
 
 def get_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {utils.get_version()}",
+    )
+
     sub_commands = parser.add_subparsers(
         title="subcommands", required=True, dest="subcommand"
     )
