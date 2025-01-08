@@ -30,22 +30,33 @@ class ProgressBar(tqdm):
 
 
 def get_hash_command(args: argparse.Namespace) -> None:
-    progress_bar = ProgressBar(
-        total=100.0,
-        leave=False,
-        bar_format="{percentage:3.0f}% |{bar}| Time Remaining: {remaining}",
+    prog_bar_format = (
+        "{desc}{percentage:3.0f}% |{bar}| Time Remaining: {remaining}"
     )
 
-    def print_progress(value: float) -> None:
-        progress_bar.set_progress(value)
+    def print_progress(bar, value: float) -> None:
+        bar.set_progress(value)
 
-    result = validation.get_file_hash(
-        args.file_path,
-        hashing_algorithm=SUPPORTED_ALGORITHMS[args.hashing_algorithm],
-        progress_reporter=print_progress,
-    )
-    progress_bar.close()
-    print(f"\n{args.file_path} --> {args.hashing_algorithm}: {result}")
+    for i, file_path in enumerate(args.files):
+        progress_bar = ProgressBar(
+            total=100.0, leave=False, bar_format=prog_bar_format
+        )
+
+        progress_bar.set_description(file_path.name)
+        result = validation.get_file_hash(
+            file_path,
+            hashing_algorithm=SUPPORTED_ALGORITHMS[args.hashing_algorithm],
+            progress_reporter=lambda value,  # type: ignore[misc]
+            prog_bar=progress_bar: print_progress(prog_bar, value),
+        )
+        progress_bar.close()
+
+        # Report the results
+        if len(args.files) == 1:
+            pre_fix = ""
+        else:
+            pre_fix = f"({i+1}/{len(args.files)}) "
+        print(f"{pre_fix}{file_path} --> {args.hashing_algorithm}: {result}")
 
 
 def get_arg_parser() -> argparse.ArgumentParser:
@@ -60,7 +71,8 @@ def get_arg_parser() -> argparse.ArgumentParser:
         title="subcommands", required=True, dest="subcommand"
     )
     get_hash_command_parser = sub_commands.add_parser("get-hash")
-    get_hash_command_parser.add_argument("file_path", type=pathlib.Path)
+    get_hash_command_parser.add_argument("files", nargs="*", type=pathlib.Path)
+    get_hash_command_parser.set_defaults(func=get_hash_command)
     get_hash_command_parser.add_argument(
         "--hashing_algorithm",
         type=str,
