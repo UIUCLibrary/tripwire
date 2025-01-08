@@ -1,3 +1,4 @@
+import pathlib
 from unittest.mock import Mock, MagicMock
 from avtool import validation
 import hashlib
@@ -39,3 +40,18 @@ def test_get_file_hash(monkeypatch):
         hashing_strategy=hashing_strategy,
     )
     assert hashing_strategy.called
+
+
+def test_validate_directory_checksums_command():
+    compare_checksum_to_target_strategy = Mock(return_value=None)
+    validation.validate_directory_checksums_command(
+        path=pathlib.Path("dummy"),
+        locate_checksum_strategy=lambda _: [
+            (pathlib.Path("dummy") / "dummy.mp3.md5")
+        ],
+        read_checksums_strategy=lambda _: "123344",
+        compare_checksum_to_target_strategy=compare_checksum_to_target_strategy,
+    )
+    compare_checksum_to_target_strategy.assert_called_once_with(
+        "123344", (pathlib.Path("dummy") / "dummy.mp3")
+    )
