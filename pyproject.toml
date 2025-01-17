@@ -1,6 +1,6 @@
 [project]
 name = "avtool"
-version = "0.1.0.dev1"
+version = "0.1.0"
 requires-python = ">= 3.11"
 maintainers = [
     { name="Henry Borchers", email="hborcher@illinois.edu" }
