@@ -370,6 +370,7 @@ pipeline {
                     }
                     environment{
                         UV_INDEX_STRATEGY='unsafe-best-match'
+                        UV_PYTHON_PREFERENCE='only-managed'
                     }
                     parallel{
                         stage('Mac Application Bundle x86_64'){
