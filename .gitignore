@@ -50,6 +50,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+reports/
 
 # Translations
 *.mo
@@ -156,3 +157,6 @@ cython_debug/
 
 # PyCharm
 .idea/
+
+# system files
+.DS_Store
