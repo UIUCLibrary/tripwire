@@ -1,6 +1,6 @@
 [project]
 name = "tripwire"
-version = "0.2.0.dev2"
+version = "0.2.0"
 requires-python = ">= 3.11"
 maintainers = [
     { name="Henry Borchers", email="hborcher@illinois.edu" }
