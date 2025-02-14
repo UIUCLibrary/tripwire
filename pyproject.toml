@@ -1,5 +1,5 @@
 [project]
-name = "avtool"
+name = "tripwire"
 version = "0.2.0.dev2"
 requires-python = ">= 3.11"
 maintainers = [
@@ -14,14 +14,14 @@ dependencies = [
     "tqdm"
 ]
 [project.scripts]
-placeholder = "avtool.main:main"
+tripwire = "tripwire.main:main"
 
 [build-system]
 requires = ["setuptools>=75.1.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["avtool"]
+packages = ["tripwire"]
 
 [tool.commitizen]
 name = "cz_conventional_commits"

@@ -131,7 +131,7 @@ class GenerateCPackConfig(abc.ABC):
         }
 
     def create_boilerplate_config(self) -> str:
-        cpack_package_name = "avtool"
+        cpack_package_name = "tripwire"
         version = self.metadata["CPACK_PACKAGE_VERSION"]
         package_description = self.metadata.get(
             "CPACK_PACKAGE_DESCRIPTION", ""
@@ -201,7 +201,7 @@ def package_with_cpack(build_path, dist, package_metadata, cpack_generator):
 def package_with_system_zip(build_path, dist, package_metadata):
     zip_file_path = os.path.join(
         "dist",
-        f"avtool-{package_metadata['version']}-{package_metadata['os_name']}-{package_metadata['architecture']}.zip",
+        f"tripwire-{package_metadata['version']}-{package_metadata['os_name']}-{package_metadata['architecture']}.zip",
     )
     cwd = "dist"
     zip_command = [
@@ -219,7 +219,7 @@ def package_with_system_zip(build_path, dist, package_metadata):
 def package_with_system_tar(build_path, dist, package_metadata):
     archive_file_path = os.path.join(
         "dist",
-        f"avtool-{package_metadata['version']}-{package_metadata['os_name']}-{package_metadata['architecture']}.tar.gz",
+        f"tripwire-{package_metadata['version']}-{package_metadata['os_name']}-{package_metadata['architecture']}.tar.gz",
     )
     cwd = "dist"
     command = [
@@ -236,7 +236,7 @@ def package_with_system_tar(build_path, dist, package_metadata):
 def package_with_builtin_zip(build_path, dist, package_metadata):
     zip_file_path = os.path.join(
         "dist",
-        f"avtool-{package_metadata['version']}-{package_metadata['os_name']}-{package_metadata['architecture']}.zip",
+        f"tripwire-{package_metadata['version']}-{package_metadata['os_name']}-{package_metadata['architecture']}.zip",
     )
     with zipfile.ZipFile(zip_file_path, "w", zipfile.ZIP_DEFLATED) as zipf:
         for root, dirs, files in os.walk(dist):

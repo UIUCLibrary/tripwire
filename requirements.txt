@@ -3,4 +3,4 @@
 tqdm==4.67.1
     # via
     #   -r requirements/requirements.in
-    #   avtool (pyproject.toml)
+    #   tripwire (pyproject.toml)

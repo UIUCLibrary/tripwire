@@ -1,2 +1,2 @@
-def test_avtool():
-    import avtool  # noqa: F401
+def test_tripwire():
+    import tripwire  # noqa: F401

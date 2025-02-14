@@ -1,4 +1,4 @@
-from avtool.main import main
+from tripwire.main import main
 
 if __name__ == "__main__":
     main()

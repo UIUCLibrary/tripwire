@@ -1,5 +1,5 @@
 import pytest
-from avtool import main
+from tripwire import main
 
 
 @pytest.mark.parametrize(
