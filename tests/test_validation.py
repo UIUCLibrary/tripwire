@@ -1,6 +1,6 @@
 import pathlib
 from unittest.mock import Mock, MagicMock
-from avtool import validation
+from tripwire import validation
 import hashlib
 import io
 import pytest

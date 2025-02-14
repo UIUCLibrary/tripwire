@@ -1,3 +1,3 @@
 from PyInstaller.utils.hooks import copy_metadata
 
-datas = copy_metadata("avtool", recursive=True)
+datas = copy_metadata("tripwire", recursive=True)

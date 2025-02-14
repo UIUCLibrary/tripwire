@@ -61,7 +61,7 @@ termcolor==2.5.0
 tomlkit==0.13.2
     # via commitizen
 tqdm==4.67.1
-    # via avtool (pyproject.toml)
+    # via tripwire (pyproject.toml)
 types-requests==2.32.0.20241016
     # via types-tqdm
 types-tqdm==4.67.0.20241221

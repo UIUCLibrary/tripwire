@@ -2,7 +2,7 @@ import importlib.metadata
 import io
 from unittest.mock import Mock, MagicMock
 import pytest
-from avtool import utils
+from tripwire import utils
 
 
 def test_get_version():

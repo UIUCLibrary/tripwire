@@ -116,7 +116,7 @@ pipeline {
                                         catchError(buildResult: 'UNSTABLE', message: 'Did not pass all pytest tests', stageResult: 'UNSTABLE') {
                                             sh(
                                                 script: '''. ./venv/bin/activate
-                                                           PYTHONFAULTHANDLER=1 coverage run --parallel-mode --source=avtool -m pytest --junitxml=./reports/tests/pytest/pytest-junit.xml --capture=no
+                                                           PYTHONFAULTHANDLER=1 coverage run --parallel-mode --source=tripwire -m pytest --junitxml=./reports/tests/pytest/pytest-junit.xml --capture=no
                                                        '''
                                             )
                                         }
@@ -129,7 +129,7 @@ pipeline {
                                 }
                                 stage('Task Scanner'){
                                     steps{
-                                        recordIssues(tools: [taskScanner(highTags: 'FIXME', includePattern: 'avtool/**/*.py', normalTags: 'TODO')])
+                                        recordIssues(tools: [taskScanner(highTags: 'FIXME', includePattern: 'tripwire/**/*.py', normalTags: 'TODO')])
                                     }
                                 }
                                 stage('Ruff') {
@@ -155,7 +155,7 @@ pipeline {
                                         catchError(buildResult: 'SUCCESS', message: 'MyPy found issues', stageResult: 'UNSTABLE') {
                                             tee('logs/mypy.log'){
                                                 sh(label: 'Running MyPy',
-                                                   script: '. ./venv/bin/activate && mypy -p avtool --html-report reports/mypy/html'
+                                                   script: '. ./venv/bin/activate && mypy -p tripwire --html-report reports/mypy/html'
                                                 )
                                             }
                                         }
@@ -419,7 +419,7 @@ pipeline {
                                         unstash 'APPLE_APPLICATION_X86_64'
                                         untar(file: "${findFiles(glob: 'dist/*.tar.gz')[0]}", dir: 'dist/out')
                                         script{
-                                            def application = findFiles(glob: 'dist/out/**/avtool')[0].path
+                                            def application = findFiles(glob: 'dist/out/**/tripwire')[0].path
                                             sh "${application} --help"
                                             sh "${application} --version"
                                         }
@@ -483,7 +483,7 @@ pipeline {
                                         unstash 'APPLE_APPLICATION_ARM64'
                                         untar(file: "${findFiles(glob: 'dist/*.tar.gz')[0]}", dir: 'dist/out')
                                         script{
-                                            def application = findFiles(glob: 'dist/out/**/avtool')[0].path
+                                            def application = findFiles(glob: 'dist/out/**/tripwire')[0].path
                                             sh "${application} --help"
                                             sh "${application} --version"
                                         }
@@ -554,9 +554,9 @@ pipeline {
                                     }
                                     steps{
                                         unstash 'WINDOWS_APPLICATION_X86_64'
-                                        unzip(zipFile: "${findFiles(glob: 'dist/*.zip')[0]}", dir: 'dist/avtool')
+                                        unzip(zipFile: "${findFiles(glob: 'dist/*.zip')[0]}", dir: 'dist/tripwire')
                                         script{
-                                            def application = findFiles(glob: 'dist/avtool/**/avtool.exe')[0]
+                                            def application = findFiles(glob: 'dist/tripwire/**/tripwire.exe')[0]
                                             bat "${application} --help"
                                             bat "${application} --version"
                                         }
