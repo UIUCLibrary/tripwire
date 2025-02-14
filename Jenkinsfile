@@ -55,6 +55,8 @@ pipeline {
     agent none
     parameters{
         booleanParam(name: 'RUN_CHECKS', defaultValue: true, description: 'Run checks on code')
+        booleanParam(name: 'USE_SONARQUBE', defaultValue: true, description: 'Send data test data to SonarQube')
+        credentials(name: 'SONARCLOUD_TOKEN', credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl', defaultValue: 'sonarcloud_token', required: false)
         booleanParam(name: 'BUILD_PACKAGES', defaultValue: false, description: 'Build Python packages')
         booleanParam(name: 'TEST_PACKAGES', defaultValue: false, description: 'Test packages')
         booleanParam(name: 'INCLUDE_LINUX-X86_64', defaultValue: true, description: 'Include x86_64 architecture for Linux')
@@ -82,7 +84,7 @@ pipeline {
                     agent {
                         docker{
                             image 'python'
-                            label 'docker && linux'
+                            label 'docker && linux && x86_64'
                             args '--mount source=uv_python_install_dir,target=/tmp/uvpython'
                         }
 
@@ -174,6 +176,50 @@ pipeline {
                                           coverage combine && coverage xml -o reports/coverage.xml && coverage html -d reports/coverage
                                        '''
                                     recordCoverage(tools: [[parser: 'COBERTURA', pattern: 'reports/coverage.xml']])
+                                }
+                            }
+                        }
+                        stage('Submit results to SonarQube'){
+                            options{
+                                lock('tripwire-sonarscanner')
+                            }
+                            environment{
+                                VERSION="${readTOML( file: 'pyproject.toml')['project'].version}"
+                            }
+                            when{
+                                allOf{
+                                    equals expected: true, actual: params.USE_SONARQUBE
+                                    expression{
+                                        try{
+                                            withCredentials([string(credentialsId: params.SONARCLOUD_TOKEN, variable: '$$$$$$$')]) {
+                                                echo 'Found credentials for sonarqube'
+                                            }
+                                        } catch(e){
+                                            return false
+                                        }
+                                        return true
+                                    }
+                                }
+                            }
+                            steps{
+                                    withSonarQubeEnv(installationName: 'sonarcloud', credentialsId: params.SONARCLOUD_TOKEN) {
+                                        sh(
+                                            label: 'Running Sonar Scanner',
+                                            script: "./venv/bin/uvx pysonar-scanner -Dsonar.projectVersion=${env.VERSION} -Dsonar.python.xunit.reportPath=./reports/tests/pytest/pytest-junit.xml -Dsonar.python.coverage.reportPaths=./reports/coverage.xml -Dsonar.python.ruff.reportPaths=./reports/ruffoutput.json -Dsonar.python.mypy.reportPaths=./logs/mypy.log ${env.CHANGE_ID ? '-Dsonar.pullrequest.key=$CHANGE_ID -Dsonar.pullrequest.base=$BRANCH_NAME' : '-Dsonar.branch.name=$BRANCH_NAME' }",
+                                        )
+                                    }
+                                    script{
+                                        timeout(time: 1, unit: 'HOURS') {
+                                            def sonarqubeResult = waitForQualityGate(abortPipeline: false, credentialsId: params.SONARCLOUD_TOKEN)
+                                            if (sonarqubeResult.status != 'OK') {
+                                               unstable "SonarQube quality gate: ${sonarqubeResult.status}"
+                                           }
+                                        }
+                                }
+                            }
+                            post{
+                                always{
+                                    milestone ordinal: 1, label: 'sonarcloud'
                                 }
                             }
                         }
