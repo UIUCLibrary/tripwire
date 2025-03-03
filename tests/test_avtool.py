@@ -1,2 +1,2 @@
 def test_tripwire():
-    import tripwire  # noqa: F401
+    import uiucprescon.tripwire  # noqa: F401

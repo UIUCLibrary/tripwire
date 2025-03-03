@@ -17,7 +17,7 @@ create_standalone(){
 #     Generates the .egg-info needed for the version metadata
     $uv_path build --wheel
 
-    $uv_path run --with-requirements requirements.txt $FREEZE_SCRIPT tripwire ./tripwire/__main__.py
+    $uv_path run --with-requirements requirements.txt $FREEZE_SCRIPT tripwire ./uiucprescon/tripwire/__main__.py
 }
 
 

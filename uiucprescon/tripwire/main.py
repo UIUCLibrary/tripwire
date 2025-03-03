@@ -5,7 +5,7 @@ import multiprocessing
 import pathlib
 from typing import Callable, Any
 
-from tripwire import validation, utils
+from uiucprescon.tripwire import validation, utils
 
 
 def capture_log(
