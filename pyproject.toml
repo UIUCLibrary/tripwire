@@ -1,5 +1,5 @@
 [project]
-name = "tripwire"
+name = "uiucprescon.tripwire"
 version = "0.2.1.dev0"
 requires-python = ">= 3.11"
 maintainers = [
@@ -17,14 +17,14 @@ dependencies = [
 project = "https://github.com/UIUCLibrary/tripwire"
 
 [project.scripts]
-tripwire = "tripwire.main:main"
+tripwire = "uiucprescon.tripwire.main:main"
 
 [build-system]
 requires = ["setuptools>=75.1.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["tripwire"]
+packages = ["uiucprescon.tripwire"]
 
 [tool.commitizen]
 name = "cz_conventional_commits"

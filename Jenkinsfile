@@ -71,7 +71,7 @@ pipeline {
         booleanParam(name: 'DEPLOY_STANDALONE_PACKAGERS', defaultValue: false, description: 'Deploy standalone packages')
     }
     stages {
-        stage('Building and Resting'){
+        stage('Building and Testing'){
             stages{
                 stage('Build and Test'){
                     environment{
@@ -118,7 +118,7 @@ pipeline {
                                         catchError(buildResult: 'UNSTABLE', message: 'Did not pass all pytest tests', stageResult: 'UNSTABLE') {
                                             sh(
                                                 script: '''. ./venv/bin/activate
-                                                           PYTHONFAULTHANDLER=1 coverage run --parallel-mode --source=tripwire -m pytest --junitxml=./reports/tests/pytest/pytest-junit.xml --capture=no
+                                                           PYTHONFAULTHANDLER=1 coverage run --parallel-mode --source=uiucprescon.tripwire -m pytest --junitxml=./reports/tests/pytest/pytest-junit.xml --capture=no
                                                        '''
                                             )
                                         }
@@ -157,7 +157,7 @@ pipeline {
                                         catchError(buildResult: 'SUCCESS', message: 'MyPy found issues', stageResult: 'UNSTABLE') {
                                             tee('logs/mypy.log'){
                                                 sh(label: 'Running MyPy',
-                                                   script: '. ./venv/bin/activate && mypy -p tripwire --html-report reports/mypy/html'
+                                                   script: '. ./venv/bin/activate && mypy -p uiucprescon.tripwire --html-report reports/mypy/html'
                                                 )
                                             }
                                         }

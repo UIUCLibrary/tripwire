@@ -1,5 +1,5 @@
 import pytest
-from tripwire import main
+from uiucprescon.tripwire import main
 
 
 @pytest.mark.parametrize(
