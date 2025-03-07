@@ -1,3 +1,5 @@
+# PYTHON_ARGCOMPLETE_OK
+
 import argparse
 import functools
 import logging
@@ -6,6 +8,8 @@ import pathlib
 from typing import Callable, Any
 
 from uiucprescon.tripwire import validation, utils
+
+import argcomplete
 
 
 def capture_log(
@@ -71,6 +75,7 @@ def get_arg_parser() -> argparse.ArgumentParser:
 def main() -> None:
     multiprocessing.freeze_support()
     parser = get_arg_parser()
+    argcomplete.autocomplete(parser)
     args = parser.parse_args()
     match args.subcommand:
         case "get-hash":
