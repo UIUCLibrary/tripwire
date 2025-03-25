@@ -335,7 +335,7 @@ pipeline {
                                                         checkout scm
                                                         unstash 'PYTHON_PACKAGES'
                                                         if(['linux', 'windows'].contains(entry.OS) && params.containsKey("INCLUDE_${entry.OS}-${entry.ARCHITECTURE}".toUpperCase()) && params["INCLUDE_${entry.OS}-${entry.ARCHITECTURE}".toUpperCase()]){
-                                                            docker.image('python').inside(isUnix() ? '': "--mount type=volume,source=uv_python_install_dir,target=C:\\Users\\ContainerUser\\Documents\\uvpython"){
+                                                            docker.image(env.DEFAULT_PYTHON_DOCKER_IMAGE ? env.DEFAULT_PYTHON_DOCKER_IMAGE: 'python').inside(isUnix() ? '': "--mount type=volume,source=uv_python_install_dir,target=C:\\Users\\ContainerUser\\Documents\\uvpython"){
                                                                  if(isUnix()){
                                                                     withEnv([
                                                                         'PIP_CACHE_DIR=/tmp/pipcache',
@@ -559,7 +559,7 @@ pipeline {
                                 stage('Package'){
                                     agent{
                                         docker{
-                                            image 'python'
+                                            image 'python:windowsservercore-ltsc2022'
                                             label 'windows && docker && x86_64'
                                             args '--mount source=uv_python_install_dir,target=C:\\Users\\ContainerUser\\Documents\\uvpython'
                                         }
@@ -591,7 +591,7 @@ pipeline {
                                 stage('Test package'){
                                     agent {
                                         docker {
-                                            image 'mcr.microsoft.com/windows/servercore:ltsc2019'
+                                            image 'mcr.microsoft.com/windows/servercore:ltsc2022'
                                             label 'windows && docker && x86_64'
                                         }
                                     }
