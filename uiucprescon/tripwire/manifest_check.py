@@ -1,9 +1,10 @@
 """Manifest file checking."""
 
+import abc
 import os
 import pathlib
 import typing
-from typing import Mapping, Set, MutableMapping
+from typing import Mapping, Set, MutableMapping, TextIO, Sequence, Type
 import logging
 from uiucprescon.tripwire import files as tripwire_files
 from tqdm import tqdm
@@ -23,24 +24,163 @@ class SearchPackage(typing.TypedDict, total=False):
     photo_file_checksum: str
 
 
-def get_items_check_to_locate(row: Mapping[str, str]) -> SearchPackage:
-    data: SearchPackage = {}
-    preservation_key = "Preservation Filename\n(WAVE, 96kHz/24bit)"
-    if preservation_key in row and row[preservation_key]:
-        data["preservation_file"] = f"{row[preservation_key]}.wav"
-        data["preservation_file_checksum"] = f"{row[preservation_key]}.wav.md5"
+class AbsManifest(abc.ABC):
+    """Abstract class for manifest."""
 
-    access_key = "Access Filename\n(MPEG-3)"
+    @abc.abstractmethod
+    def verify_format_type(self, fp: TextIO) -> bool:
+        """Check if the file is the expect format."""
 
-    if access_key in row and row[access_key]:
-        data["access_file"] = f"{row[access_key]}.mp3"
-        data["access_file_checksum"] = f"{row[access_key]}.mp3.md5"
+    @abc.abstractmethod
+    def extract_files_from_manifest(
+        self, row: Mapping[str, str]
+    ) -> SearchPackage:
+        """identify the files from a given row in the manifest."""
 
-    photo_key = "Photograph Filenames\n(JPEG)"
-    if photo_key in row and row[photo_key]:
-        data["photo_file"] = f"{row[photo_key].strip()}.jpg"
-        data["photo_file_checksum"] = f"{row[photo_key].strip()}.jpg.md5"
-    return data
+
+class FilmManifest(AbsManifest):
+    """Film manifest."""
+
+    def verify_format_type(self, fp: TextIO) -> bool:
+        result = self.is_it_a_film_manifest(fp=fp)
+        if result is True:
+            logger.debug("Determined manifest type is a film manifest.")
+        return result
+
+    @staticmethod
+    @tripwire_files.remembered_file_pointer
+    def is_it_a_film_manifest(fp: TextIO) -> bool:
+        try:
+            manifest = tripwire_files.TSVManifest(fp)
+            return "Date of Film (M/D/YYYY)" in manifest[0].row_data
+        except IndexError:
+            return False
+
+    def extract_files_from_manifest(
+        self, row: Mapping[str, str]
+    ) -> SearchPackage:
+        data: SearchPackage = {}
+        preservation_key = "Preservation File Name\n(uncompressed, MOV)"
+        if preservation_key in row and row[preservation_key]:
+            data["preservation_file"] = f"{row[preservation_key]}.mov"
+            data["preservation_file_checksum"] = (
+                f"{row[preservation_key]}.mov.md5"
+            )
+        access_key = "Access File Name\n(MPEG-4)"
+        if access_key in row and row[access_key]:
+            data["access_file"] = f"{row[access_key]}.mp4"
+            data["access_file_checksum"] = f"{row[access_key]}.mp4.md5"
+        photo_key = "Photograph File Name\n(JPEG)"
+        if photo_key in row and row[photo_key]:
+            data["photo_file"] = f"{row[photo_key].strip()}.jpg"
+            data["photo_file_checksum"] = f"{row[photo_key].strip()}.jpg.md5"
+        return data
+
+
+class VideoManifest(AbsManifest):
+    """Video manifest."""
+
+    @staticmethod
+    @tripwire_files.remembered_file_pointer
+    def is_it_a_video_manifest(fp: TextIO) -> bool:
+        try:
+            manifest = tripwire_files.TSVManifest(fp)
+            has_cassette_no_key = "Cassette \nNo." in manifest[0].row_data
+        except IndexError:
+            return False
+        if not has_cassette_no_key:
+            return False
+        if (
+            """Side
+(A/B)"""
+            in manifest[0].row_data
+        ):
+            return False
+        return True
+
+    def verify_format_type(self, fp: TextIO) -> bool:
+        result = self.is_it_a_video_manifest(fp=fp)
+        if result:
+            logger.debug("Determined manifest type is a video manifest.")
+        return result
+
+    def extract_files_from_manifest(
+        self, row: Mapping[str, str]
+    ) -> SearchPackage:
+        data: SearchPackage = {}
+        preservation_key = "Preservation File Name"
+        if preservation_key in row and row[preservation_key]:
+            data["preservation_file"] = f"{row[preservation_key]}.mov"
+            data["preservation_file_checksum"] = (
+                f"{row[preservation_key]}.mov.md5"
+            )
+        access_key = "Access File Name"
+        if access_key in row and row[access_key]:
+            data["access_file"] = f"{row[access_key]}.mp4"
+            data["access_file_checksum"] = f"{row[access_key]}.mp4.md5"
+        photo_key = "Photograph File Name"
+        if photo_key in row and row[photo_key]:
+            data["photo_file"] = f"{row[photo_key].strip()}.jpg"
+            data["photo_file_checksum"] = f"{row[photo_key].strip()}.jpg.md5"
+        return data
+
+
+class AudioManifest(AbsManifest):
+    """Audio manifest."""
+
+    @staticmethod
+    @tripwire_files.remembered_file_pointer
+    def is_it_an_audio_manifest(fp: TextIO) -> bool:
+        try:
+            manifest = tripwire_files.TSVManifest(fp)
+            return "Cassette Title" in manifest[0].row_data
+        except IndexError:
+            return False
+
+    def verify_format_type(self, fp: TextIO) -> bool:
+        result = self.is_it_an_audio_manifest(fp=fp)
+        if result:
+            logger.debug("Determined manifest type is an audio manifest.")
+        return result
+
+    def extract_files_from_manifest(
+        self, row: Mapping[str, str]
+    ) -> SearchPackage:
+        data: SearchPackage = {}
+        preservation_key = "Preservation Filename\n(WAVE, 96kHz/24bit)"
+        if preservation_key in row and row[preservation_key]:
+            data["preservation_file"] = f"{row[preservation_key]}.wav"
+            data["preservation_file_checksum"] = (
+                f"{row[preservation_key]}.wav.md5"
+            )
+        access_key = "Access Filename\n(MPEG-3)"
+        if access_key in row and row[access_key]:
+            data["access_file"] = f"{row[access_key]}.mp3"
+            data["access_file_checksum"] = f"{row[access_key]}.mp3.md5"
+        photo_key = "Photograph Filenames\n(JPEG)"
+        if photo_key in row and row[photo_key]:
+            data["photo_file"] = f"{row[photo_key].strip()}.jpg"
+            data["photo_file_checksum"] = f"{row[photo_key].strip()}.jpg.md5"
+        return data
+
+
+# The order to determine the type of manifest file that a file
+# handle points to. Used by get_manifest_type()
+
+LOOK_UP_MANIFEST_CHECKS_ORDER: Sequence[Type[AbsManifest]] = [
+    FilmManifest,
+    VideoManifest,
+    AudioManifest,
+]
+
+
+def get_manifest_type(fp: typing.TextIO) -> AbsManifest:
+    for klass in LOOK_UP_MANIFEST_CHECKS_ORDER:
+        manifest_type = klass()
+        if manifest_type.verify_format_type(fp=fp):
+            return manifest_type
+
+    raise ValueError("unable to determine type of manifest")
 
 
 class RecursiveFileSearch:
@@ -117,7 +257,9 @@ def locate_missing_files(
 
 
 def locate_manifest_files_fp(
-    manifest_tsv_fp: typing.TextIO, search_path: pathlib.Path
+    manifest_tsv_fp: typing.TextIO,
+    search_path: pathlib.Path,
+    manifest_type: AbsManifest,
 ) -> Set[pathlib.Path]:
     prog_bar_format = (
         "{desc}{percentage:3.0f}% |{bar}| Time Remaining: {remaining}"
@@ -132,7 +274,9 @@ def locate_manifest_files_fp(
     for row in (
         prog_bar := tqdm(manifest, bar_format=prog_bar_format, leave=False)
     ):
-        if items_check := get_items_check_to_locate(row.row_data):
+        if items_check := manifest_type.extract_files_from_manifest(
+            row.row_data
+        ):
             if missing_files := locate_missing_files(items_check, scanner):
                 for k, v in missing_files.items():
                     prog_bar.write(
@@ -157,8 +301,11 @@ def locate_manifest_files(
         search_path,
     )
     try:
-        with manifest_tsv.open("r") as fp:
-            unexpected_files = locate_manifest_files_fp(fp, search_path)
+        with manifest_tsv.open("r", newline="", encoding="utf-8") as fp:
+            manifest_type = get_manifest_type(fp=fp)
+            unexpected_files = locate_manifest_files_fp(
+                fp, search_path, manifest_type=manifest_type
+            )
     except tripwire_files.InvalidFileFormat as e:
         raise tripwire_files.InvalidFileFormat(
             file=manifest_tsv.name, details=e.details

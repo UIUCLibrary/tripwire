@@ -38,7 +38,7 @@ logger.setLevel(logging.INFO)
 class InvalidFileFormat(Exception):
     """Invalid file format exception."""
 
-    def __init__(self, file: str = "", details="") -> None:
+    def __init__(self, file: str = "", details: str = "") -> None:
         message = (
             f"Invalid file format. File: {file}"
             if file
@@ -125,7 +125,9 @@ def discover_manifest_tsv_findings(fp: TextIO) -> Set[Finding]:
             Finding(ValidationFindingLevel.WARNING, "No rows in the file.")
         )
 
-    except (csv.Error, UnicodeDecodeError):
+    except (csv.Error, UnicodeDecodeError) as e:
+        print(e)
+        logger.debug("Failed to parse file: %s", e)
         # Something funky with the file. Probably not a TSV file.
         findings.add(
             Finding(

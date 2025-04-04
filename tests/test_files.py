@@ -4,28 +4,13 @@ from unittest.mock import Mock
 import pytest
 
 from uiucprescon import tripwire
-
-
-@pytest.fixture
-def sample_manifest_tsv_data():
-    return """
-Housing Title	"Cassette
-No. "	"Side
-(A/B)"	Cassette Title	Date Recorded (M/D/YYYY) 	Format	Condition Notes	Inspection Date (M/D/YYYY)	Treatment Given	"Preservation Filename
-(WAVE, 96kHz/24bit)"	"Access Filename
-(MPEG-3)"	"Photograph Filenames
-(JPEG)"	 Duration (HH:MM:SS)	Transfer Notes 	Transfer Date (M/D/YYYY)	"Transferred 
-By"										
-Interviews Vol. 1	1	A	Interview with Lou Harrison	1/1/1978	Compact Cassette	"overall good, some dust at capstan and pinch roller openings, pressure pad is thin"	9/2/21	None	3503082_series17_box33_folder1_tape1_A_pres	3503082_series17_box33_folder1_tape1_A_acc	"3503082_series17_box33_folder1_label1 thru label29
-"	0:30:12	Intelligible	5/31/24	Scene Savers
-Interviews Vol. 1	1	B	Interview with Lou Harrison	1/1/1978	Compact Cassette	"overall good, some dust at capstan and pinch roller openings, pressure pad is thin"	9/2/21	None	3503082_series17_box33_folder1_tape1_B_pres	3503082_series17_box33_folder1_tape1_B_acc		0:29:13	Intelligible	5/31/24	Scene Savers
-""".strip()  # noqa: E501
+import sample_data
 
 
 class TestTSVManifest:
-    def test_read_file_data(self, sample_manifest_tsv_data):
+    def test_read_file_data(self):
         # Test the TSVManifest class with a sample TSV file
-        test_file = io.StringIO(sample_manifest_tsv_data)
+        test_file = io.StringIO(sample_data.SAMPLE_AUDIO_MANIFEST_TSV_DATA)
         manifest = tripwire.files.TSVManifest(test_file)
         assert len(manifest) == 2
         assert manifest[0].row_data == {
@@ -67,8 +52,8 @@ class TestTSVManifest:
             "Treatment Given": "None",
         }
 
-    def test_iter(self, sample_manifest_tsv_data):
-        test_file = io.StringIO(sample_manifest_tsv_data)
+    def test_iter(self):
+        test_file = io.StringIO(sample_data.SAMPLE_AUDIO_MANIFEST_TSV_DATA)
         manifest = tripwire.files.TSVManifest(test_file)
         rows = list(manifest)
         assert len(rows) == 2
@@ -76,21 +61,21 @@ class TestTSVManifest:
             rows[0].row_data["Cassette Title"] == "Interview with Lou Harrison"
         )
 
-    def test_line_number(self, sample_manifest_tsv_data):
-        test_file = io.StringIO(sample_manifest_tsv_data)
+    def test_line_number(self):
+        test_file = io.StringIO(sample_data.SAMPLE_AUDIO_MANIFEST_TSV_DATA)
         manifest = tripwire.files.TSVManifest(test_file)
         row = manifest[0]
         assert row.line_number == 9
 
-    def test_get_single_item(self, sample_manifest_tsv_data):
-        test_file = io.StringIO(sample_manifest_tsv_data)
+    def test_get_single_item(self):
+        test_file = io.StringIO(sample_data.SAMPLE_AUDIO_MANIFEST_TSV_DATA)
         manifest = tripwire.files.TSVManifest(test_file)
         row = manifest[0]
         assert row["Side\n(A/B)"] == "A"
         assert row.line_number == 9
 
-    def test_get_slice(self, sample_manifest_tsv_data):
-        test_file = io.StringIO(sample_manifest_tsv_data)
+    def test_get_slice(self):
+        test_file = io.StringIO(sample_data.SAMPLE_AUDIO_MANIFEST_TSV_DATA)
         manifest = tripwire.files.TSVManifest(test_file)
         rows = manifest[0:2]
         assert len(rows) == 2
@@ -98,8 +83,8 @@ class TestTSVManifest:
         assert rows[1]["Side\n(A/B)"] == "B"
 
     @pytest.mark.parametrize("index", [2, slice(0, 3)])
-    def test_out_of_bounds(self, sample_manifest_tsv_data, index):
-        test_file = io.StringIO(sample_manifest_tsv_data)
+    def test_out_of_bounds(self, index):
+        test_file = io.StringIO(sample_data.SAMPLE_AUDIO_MANIFEST_TSV_DATA)
         manifest = tripwire.files.TSVManifest(test_file)
         with pytest.raises(IndexError):
             _ = manifest[index]
@@ -315,8 +300,15 @@ class TestManifestTSVAbsFileValidator:
         validator.validations = []
         assert len(validator.get_validation_findings()) == 0
 
-    def test_valid_file(self, sample_manifest_tsv_data):
-        test_file = io.StringIO(sample_manifest_tsv_data)
+    @pytest.mark.parametrize(
+        "data",
+        [
+            sample_data.SAMPLE_AUDIO_MANIFEST_TSV_DATA,
+            sample_data.SAMPLE_VIDEO_MANIFEST_TSV_DATA,
+        ],
+    )
+    def test_valid_file(self, data):
+        test_file = io.StringIO(data)
         validator = tripwire.files.ManifestTSVAbsFileValidator(test_file)
         assert len(validator.get_validation_findings()) == 0
 
@@ -336,13 +328,16 @@ class TestManifestTSVAbsFileValidator:
         assert len(validator.get_validation_findings()) == 1
 
 
-def test_discover_manifest_tsv_findings(sample_manifest_tsv_data):
+@pytest.mark.parametrize(
+    "data",
+    [
+        sample_data.SAMPLE_AUDIO_MANIFEST_TSV_DATA,
+        sample_data.SAMPLE_VIDEO_MANIFEST_TSV_DATA,
+    ],
+)
+def test_discover_manifest_tsv_findings(data):
     assert (
-        len(
-            tripwire.files.discover_manifest_tsv_findings(
-                io.StringIO(sample_manifest_tsv_data)
-            )
-        )
+        len(tripwire.files.discover_manifest_tsv_findings(io.StringIO(data)))
         == 0
     )
 

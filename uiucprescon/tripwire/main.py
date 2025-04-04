@@ -94,9 +94,9 @@ def get_arg_parser() -> Tuple[
     manifest_check_parser.add_argument(
         "manifest",
         type=pathlib.Path,
-        help=""".tsv file that contains a package manifest. 
-        Note that this is NOT an excel (.xlsx) file. To create a .tsv file, 
-        from an .xlsx file, open the .xlsx file in Excel and save it as a 
+        help=""".tsv file that contains a package manifest.
+        Note that this is NOT an excel (.xlsx) file. To create a .tsv file,
+        from an .xlsx file, open the .xlsx file in Excel and save it as a
         Tab Delimited Text file format.""",
     )
     manifest_check_parser.add_argument(
