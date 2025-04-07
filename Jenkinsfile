@@ -107,6 +107,27 @@ pipeline {
                                )
                             }
                         }
+                        stage('Build Documentation'){
+                            steps{
+                                catchError(buildResult: 'UNSTABLE', message: 'Sphinx has warnings', stageResult: 'UNSTABLE') {
+                                    sh '''. ./venv/bin/activate
+                                          python -m sphinx --builder=html -W --keep-going -w logs/build_sphinx_html.log -d build/docs/.doctrees docs dist/docs/html
+                                       '''
+                               }
+                            }
+                            post{
+                                success{
+                                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'dist/docs/html', reportFiles: 'index.html', reportName: 'Documentation', reportTitles: ''])
+                                    script{
+                                        def props = readTOML( file: 'pyproject.toml')['project']
+                                        zip archive: true, dir: 'dist/docs/html', glob: '', zipFile: "dist/${props.name}-${props.version}.doc.zip"
+                                    }
+                                }
+                                always{
+                                    recordIssues(tools: [sphinxBuild(pattern: 'logs/build_sphinx_html.log')])
+                                }
+                            }
+                        }
                         stage('Run Tests'){
                             when{
                                 equals expected: true, actual: params.RUN_CHECKS
@@ -126,6 +147,33 @@ pipeline {
                                     post {
                                         always {
                                             junit(allowEmptyResults: true, testResults: 'reports/tests/pytest/pytest-junit.xml')
+                                        }
+                                    }
+                                }
+                                stage('Documentation Doctest'){
+                                    steps {
+                                        sh(
+                                            label: 'Running Doctest Tests',
+                                            script: '''. ./venv/bin/activate
+                                                       coverage run --parallel-mode --source=uiucprescon/tripwire -m sphinx -b doctest docs/ dist/docs/html -d build/docs/doctrees --no-color -w logs/doctest.txt
+                                                    '''
+                                            )
+                                    }
+                                    post{
+                                        always {
+                                            recordIssues(tools: [sphinxBuild(id: 'doctest', name: 'Doctest', pattern: 'logs/doctest.txt')])
+                                        }
+                                    }
+                                }
+                                stage('Documentation Doctest - linkcheck'){
+                                    steps {
+                                        catchError(buildResult: 'SUCCESS', message: 'Sphinx docs linkcheck', stageResult: 'UNSTABLE') {
+                                            sh(
+                                                label: 'Running Sphinx docs linkcheck',
+                                                script: '''. ./venv/bin/activate
+                                                           python -m sphinx -b doctest docs/ build/docs -d build/docs/doctrees --no-color --builder=linkcheck --fail-on-warning
+                                                           '''
+                                                )
                                         }
                                     }
                                 }
