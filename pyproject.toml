@@ -15,6 +15,7 @@ dependencies = [
 ]
 [project.urls]
 project = "https://github.com/UIUCLibrary/tripwire"
+documentation = "https://uiuclibrary.github.io/tripwire/"
 
 [project.scripts]
 tripwire = "uiucprescon.tripwire.main:main"
