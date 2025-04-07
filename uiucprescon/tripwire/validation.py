@@ -143,7 +143,7 @@ def get_hash_command(
         if len(files) == 1:
             pre_fix = ""
         else:
-            pre_fix = f"({i+1}/{len(files)}) "
+            pre_fix = f"({i + 1}/{len(files)}) "
         logger.info(f"{pre_fix}{file_path} --> {hashing_algorithm}: {result}")
 
 
@@ -161,7 +161,7 @@ def create_checksum_validation_report(
         report_body = f"All {len(checksum_files_checked)} checksum(s) matched."
 
     return f"""{report_header}
-    
+
     {report_body}
     """
 

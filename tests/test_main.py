@@ -6,13 +6,13 @@ from uiucprescon.tripwire import main
     "cli_args,expected_subcommand", [(["get-hash", "value"], "get-hash")]
 )
 def test_sub_commands(cli_args, expected_subcommand):
-    args = main.get_arg_parser().parse_args(cli_args)
+    args = main.get_arg_parser()[0].parse_args(cli_args)
     assert args.subcommand == expected_subcommand
 
 
 def test_calling_version_flag_exits_with_zero():
     with pytest.raises(SystemExit) as e:
-        main.get_arg_parser().parse_args(["--version"])
+        main.get_arg_parser()[0].parse_args(["--version"])
     assert e.value.code == 0
 
 
@@ -33,5 +33,5 @@ def test_calling_version_flag_exits_with_zero():
     ],
 )
 def test_get_hash_file_args(cli_args, expected_files):
-    args = main.get_arg_parser().parse_args(cli_args)
+    args = main.get_arg_parser()[0].parse_args(cli_args)
     assert [str(f) for f in args.files] == expected_files
