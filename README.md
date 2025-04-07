@@ -1,6 +1,7 @@
 # Tripwire
 Used for helping out AV preservation
 
+[Documentation](https://uiuclibrary.github.io/tripwire/)
 
 ## Set up development environment on Mac and Linux
 
