@@ -4,7 +4,7 @@ import hashlib
 import io
 import os
 import pathlib
-from typing import BinaryIO, Optional, Callable, Any, List, Iterable
+from typing import BinaryIO, Optional, Callable, Any, List, Iterable, Protocol
 import logging
 from tqdm import tqdm
 
@@ -50,7 +50,7 @@ def get_hash_from_file_pointer(
     return item_hash.hexdigest()
 
 
-def get_file_hash(
+def get_file_hash_with_progress_reporting(
     path: pathlib.Path,
     hashing_algorithm,
     progress_reporter: Optional[Callable[[float], None]] = None,
@@ -73,8 +73,22 @@ def get_file_hash(
         return hashing_strategy(file, hashing_algorithm, progress_reporter)
 
 
+class GetFileHashStrategyProtocol(Protocol):
+    def __call__(
+        self,
+        path: pathlib.Path,
+        hashing_algorithm,
+        progress_reporter: Optional[Callable[[float], None]],
+        hashing_strategy: Callable[
+            [BinaryIO, Any, Optional[Callable[[float], None]]], str
+        ],
+    ) -> str: ...
+
+
 def validate_file_against_expected_hash(
-    expected_hash: str, target_file: pathlib.Path
+    expected_hash: str,
+    target_file: pathlib.Path,
+    get_file_hash_strategy: GetFileHashStrategyProtocol = get_file_hash_with_progress_reporting,  # noqa: E501
 ) -> Optional[List[str]]:
     prog_bar_format = (
         "{desc}{percentage:3.0f}% |{bar}| Time Remaining: {remaining}"
@@ -83,11 +97,12 @@ def validate_file_against_expected_hash(
         total=100.0, leave=False, bar_format=prog_bar_format
     )
     progress_bar.set_description("Calculating hash")
-    hash_value = get_file_hash(
+    hash_value = get_file_hash_strategy(
         path=target_file,
         hashing_algorithm=hashlib.md5,
         progress_reporter=lambda value,  # type: ignore[misc]
         prog_bar=progress_bar: prog_bar.set_progress(value),
+        hashing_strategy=get_hash_from_file_pointer,
     )
 
     progress_bar.close()
@@ -134,7 +149,7 @@ def get_hash_command(
         )
 
         progress_bar.set_description(file_path.name)
-        result = get_file_hash(
+        result = get_file_hash_with_progress_reporting(
             file_path,
             hashing_algorithm=SUPPORTED_ALGORITHMS[hashing_algorithm],
             progress_reporter=lambda value,  # type: ignore[misc]
@@ -170,7 +185,7 @@ def create_checksum_validation_report(
 
 
 def read_checksum_file(file_path: pathlib.Path) -> str:
-    with open(file_path.absolute(), "r") as f:
+    with file_path.open("r") as f:
         return f.read().strip()
 
 
