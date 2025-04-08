@@ -26,6 +26,8 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["uiucprescon.tripwire"]
+package-dir = {"" = "src"}
+zip-safe = true
 
 [tool.commitizen]
 name = "cz_conventional_commits"
@@ -58,3 +60,6 @@ envlist = ["3.11", "3.12", "3.13"]
 description = "Run test under {base_python}"
 commands = [["{env_bin_dir}{/}pytest"]]
 deps = ["-r requirements-dev.txt"]
+
+[tool.mypy]
+mypy_path = "src"
