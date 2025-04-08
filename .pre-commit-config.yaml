@@ -2,7 +2,7 @@ repos:
 - hooks:
   - id: ruff
   - id: ruff-format
-    args: [--check]
+    args: [--check, --diff]
   repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.6.8
 - hooks:
