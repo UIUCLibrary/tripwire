@@ -218,11 +218,11 @@ class GenerateCPackConfig(abc.ABC):
         )
         if sys.platform == "darwin":
             lines.append(
-                'set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-MacOS-${CMAKE_HOST_SYSTEM_PROCESSOR}")'
+                'set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-MacOS-${CMAKE_HOST_SYSTEM_PROCESSOR}")'  # noqa: E501
             )
         else:
             lines.append(
-                'set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Windows-${CMAKE_HOST_SYSTEM_PROCESSOR}")'
+                'set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Windows-${CMAKE_HOST_SYSTEM_PROCESSOR}")'  # noqa: E501
             )
 
         if "CPACK_PACKAGE_DIRECTORY" in self.metadata:
