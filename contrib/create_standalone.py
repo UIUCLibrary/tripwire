@@ -99,7 +99,7 @@ def create_standalone(specs_file: str, dist: str, work_path: str) -> None:
 
 
 def generate_spec_file(
-        output_file: str, script_name: str, entry_point: str, path: str = ""
+    output_file: str, script_name: str, entry_point: str, path: str = ""
 ):
     """Generate pyinstaller specs file."""
     specs = {
@@ -151,7 +151,7 @@ class GenerateCPackConfig(abc.ABC):
     """CPackConfig builder."""
 
     def __init__(
-            self, package_name: str, source_package_path: str, version_number: str
+        self, package_name: str, source_package_path: str, version_number: str
     ):
         """Create a new GenerateCPackConfig builder object."""
         self.source_package_path = source_package_path
@@ -165,7 +165,7 @@ class GenerateCPackConfig(abc.ABC):
         )
 
     def add_additional_directories(
-            self, source: str, packaged_folder: str
+        self, source: str, packaged_folder: str
     ) -> None:
         """Add additional directories to install package."""
         self._additional_directories.add((source, packaged_folder))
@@ -207,10 +207,10 @@ class GenerateCPackConfig(abc.ABC):
             [
                 f'"{sanitize_path(source_dir)}" "{package_dir}"'
                 for source_dir, package_dir in (
-                {(app_root_dir, self.install_path_name)}.union(
-                    self._additional_directories
+                    {(app_root_dir, self.install_path_name)}.union(
+                        self._additional_directories
+                    )
                 )
-            )
             ]
         )
         lines.append(
@@ -238,12 +238,12 @@ class GenerateCPackConfig(abc.ABC):
 
 
 def package_with_cpack(
-        package_name: str,
-        build_path: str,
-        package_root: str,
-        dist: str,
-        package_metadata: typing.Dict[str, str],
-        cpack_generator: str,
+    package_name: str,
+    build_path: str,
+    package_root: str,
+    dist: str,
+    package_metadata: typing.Dict[str, str],
+    cpack_generator: str,
 ) -> None:
     """Package application using cpack utility, part of CMake."""
     cpack_file = os.path.join(build_path, "CPackConfig.cmake")
@@ -268,8 +268,8 @@ def package_with_cpack(
         [cpack_cmd, "--config", cpack_file, "-G", cpack_generator]
     )
     for file in filter(
-            lambda item: item.is_file(),
-            os.scandir(package_metadata["output_path"]),
+        lambda item: item.is_file(),
+        os.scandir(package_metadata["output_path"]),
     ):
         output_file = os.path.normpath(os.path.join(dist, file.name))
         logger.info(f"Copying {file.name} to {output_file}")
@@ -277,11 +277,11 @@ def package_with_cpack(
 
 
 def package_with_system_zip(
-        package_name: str,
-        build_path: str,
-        package_root: str,
-        dist: str,
-        package_metadata: typing.Dict[str, str],
+    package_name: str,
+    build_path: str,
+    package_root: str,
+    dist: str,
+    package_metadata: typing.Dict[str, str],
 ):
     """Package application with the OS's zip file command."""
     zip_file_path = os.path.join(
@@ -305,11 +305,11 @@ def package_with_system_zip(
 
 
 def package_with_system_tar(
-        package_name: str,
-        build_path: str,
-        package_root: str,
-        dist: str,
-        package_metadata: typing.Dict[str, str],
+    package_name: str,
+    build_path: str,
+    package_root: str,
+    dist: str,
+    package_metadata: typing.Dict[str, str],
 ):
     """Package application with the OS's tar file."""
     archive_file_path = os.path.join(
@@ -334,11 +334,11 @@ def package_with_system_tar(
 
 
 def package_with_builtin_zip(
-        package_name: str,
-        build_path: str,
-        package_root: str,
-        dist: str,
-        package_metadata: typing.Dict[str, str],
+    package_name: str,
+    build_path: str,
+    package_root: str,
+    dist: str,
+    package_metadata: typing.Dict[str, str],
 ) -> None:
     """Package application with the builtin Python zipfile library."""
     zip_file_path = os.path.join(
@@ -356,14 +356,14 @@ def package_with_builtin_zip(
 
 
 def package_distribution(
-        package_name: str,
-        dist: str,
-        build_path: str,
-        package_root: str,
-        metadata_strategy: typing.Callable[[], typing.Dict[str, str]],
-        package_strategy: typing.Callable[
-            [str, str, str, str, typing.Dict[str, str]], None
-        ],
+    package_name: str,
+    dist: str,
+    build_path: str,
+    package_root: str,
+    metadata_strategy: typing.Callable[[], typing.Dict[str, str]],
+    package_strategy: typing.Callable[
+        [str, str, str, str, typing.Dict[str, str]], None
+    ],
 ) -> None:
     """Create a distribution package."""
     package_metadata = metadata_strategy()
@@ -400,8 +400,8 @@ def create_completions(entry_point: str, dest: str) -> None:
 
 
 def include_extra_files(
-        args: argparse.Namespace,
-        dest: typing.Union[typing.LiteralString, str | bytes],
+    args: argparse.Namespace,
+    dest: typing.Union[typing.LiteralString, str | bytes],
 ) -> None:
     """Include extra file with the package."""
     if os.path.exists(args.license_file):
