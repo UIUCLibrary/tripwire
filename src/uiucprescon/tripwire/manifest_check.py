@@ -35,7 +35,7 @@ class AbsManifest(abc.ABC):
     def extract_files_from_manifest(
         self, row: Mapping[str, str]
     ) -> SearchPackage:
-        """identify the files from a given row in the manifest."""
+        """Identify the files from a given row in the manifest."""
 
 
 class FilmManifest(AbsManifest):

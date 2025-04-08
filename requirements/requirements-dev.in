@@ -5,4 +5,5 @@ pre-commit
 pytest
 ruff
 sphinx
+tox
 types-tqdm

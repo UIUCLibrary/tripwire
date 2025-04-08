@@ -6,17 +6,22 @@ argcomplete==3.6.0
     # via -r requirements.txt
 babel==2.17.0
     # via sphinx
+cachetools==5.5.2
+    # via tox
 certifi==2025.1.31
     # via requests
 cfgv==3.4.0
     # via pre-commit
+chardet==5.2.0
+    # via tox
 charset-normalizer==3.4.1
     # via requests
-colorama==0.4.6 ; sys_platform == 'win32' or platform_system == 'Windows'
+colorama==0.4.6
     # via
     #   -r requirements.txt
     #   pytest
     #   sphinx
+    #   tox
     #   tqdm
 coverage==7.8.0
     # via -r requirements/requirements-dev.in
@@ -25,7 +30,9 @@ distlib==0.3.9
 docutils==0.21.2
     # via sphinx
 filelock==3.18.0
-    # via virtualenv
+    # via
+    #   tox
+    #   virtualenv
 identify==2.6.9
     # via pre-commit
 idna==3.10
@@ -48,16 +55,24 @@ nodeenv==1.9.1
     # via pre-commit
 packaging==24.2
     # via
+    #   pyproject-api
     #   pytest
     #   sphinx
+    #   tox
 platformdirs==4.3.7
-    # via virtualenv
+    # via
+    #   tox
+    #   virtualenv
 pluggy==1.5.0
-    # via pytest
+    # via
+    #   pytest
+    #   tox
 pre-commit==4.2.0
     # via -r requirements/requirements-dev.in
 pygments==2.19.1
     # via sphinx
+pyproject-api==1.9.0
+    # via tox
 pytest==8.3.5
     # via -r requirements/requirements-dev.in
 pyyaml==6.0.2
@@ -84,6 +99,8 @@ sphinxcontrib-qthelp==2.0.0
     # via sphinx
 sphinxcontrib-serializinghtml==2.0.0
     # via sphinx
+tox==4.25.0
+    # via -r requirements/requirements-dev.in
 tqdm==4.67.1
     # via
     #   -r requirements.txt
@@ -99,4 +116,6 @@ urllib3==2.3.0
     #   requests
     #   types-requests
 virtualenv==20.30.0
-    # via pre-commit
+    # via
+    #   pre-commit
+    #   tox

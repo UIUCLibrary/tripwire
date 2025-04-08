@@ -1,9 +1,9 @@
+"""Tripwire command line interface."""
 # PYTHON_ARGCOMPLETE_OK
 
 import argparse
 import functools
 import logging
-import multiprocessing
 import pathlib
 import sys
 from typing import Callable, Any, Dict, Tuple, Optional
@@ -18,6 +18,8 @@ logger = logging.getLogger(__name__)
 def capture_log(
     logger: logging.Logger,
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    """Decorator to capture log messages."""
+
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -37,6 +39,7 @@ def capture_log(
 
 @capture_log(logger=validation.logger)
 def get_hash_command(args: argparse.Namespace) -> None:
+    """Run get hash command."""
     validation.get_hash_command(
         files=args.files, hashing_algorithm=args.hashing_algorithm
     )
@@ -44,6 +47,7 @@ def get_hash_command(args: argparse.Namespace) -> None:
 
 @capture_log(logger=validation.logger)
 def validate_checksums_command(args: argparse.Namespace) -> None:
+    """Run validate checksums command."""
     validation.validate_directory_checksums_command(path=args.path)
 
 
@@ -52,6 +56,7 @@ def manifest_check_command(
     args: argparse.Namespace,
     print_usage_function: Callable[[Optional[Any]], None],
 ) -> None:
+    """Run manifest check command."""
     try:
         manifest_check.locate_manifest_files(
             manifest_tsv=args.manifest, search_path=args.search_path
@@ -65,6 +70,7 @@ def manifest_check_command(
 def get_arg_parser() -> Tuple[
     argparse.ArgumentParser, Dict[str, Callable[[Optional[Any]], None]]
 ]:
+    """Get argument parser for the command line interface."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--version",
@@ -116,7 +122,7 @@ def get_arg_parser() -> Tuple[
 
 
 def main() -> None:
-    multiprocessing.freeze_support()
+    """Main entry point for the Tripwire command line interface."""
     parser, print_help_commands = get_arg_parser()
     argcomplete.autocomplete(parser)
     args = parser.parse_args()

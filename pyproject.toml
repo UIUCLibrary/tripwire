@@ -8,7 +8,9 @@ maintainers = [
 authors = [
     {name="University Library at The University of Illinois at Urbana Champaign: Preservation Services", email="prescons@library.illinois.edu"}
 ]
-license = { file="LICENSE"}
+license = "NCSA"
+license-files = ["LICENSE"]
+description = "Tripwire is a tool for automating digital preservation tasks specifically for AV."
 readme = { file= "README.md", content-type="text/markdown" }
 dependencies = [
     "tqdm"
@@ -21,11 +23,13 @@ documentation = "https://uiuclibrary.github.io/tripwire/"
 tripwire = "uiucprescon.tripwire.main:main"
 
 [build-system]
-requires = ["setuptools>=75.1.0"]
+requires = ["setuptools>=77.0.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["uiucprescon.tripwire"]
+package-dir = {"" = "src"}
+zip-safe = true
 
 [tool.commitizen]
 name = "cz_conventional_commits"
@@ -37,19 +41,20 @@ major_version_zero = true
 
 [tool.ruff]
 line-length = 79
+extend-exclude = ["tests"]
 
-#[tool.ruff.lint]
-#extend-select = [
-##    "D",
-#    "E301",
-#    "E302",
-#    "E303",
-#    "E501",
-#    "W293",
-#]
-#
-#[tool.ruff.lint.pydocstyle]
-#convention = "google"
+[tool.ruff.lint]
+extend-select = [
+    "D",
+    "E301",
+    "E302",
+    "E303",
+    "E501",
+    "W293",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.tox]
 envlist = ["3.11", "3.12", "3.13"]
@@ -58,3 +63,6 @@ envlist = ["3.11", "3.12", "3.13"]
 description = "Run test under {base_python}"
 commands = [["{env_bin_dir}{/}pytest"]]
 deps = ["-r requirements-dev.txt"]
+
+[tool.mypy]
+mypy_path = "src"
