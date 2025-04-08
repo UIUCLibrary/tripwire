@@ -4,7 +4,6 @@
 import argparse
 import functools
 import logging
-import multiprocessing
 import pathlib
 import sys
 from typing import Callable, Any, Dict, Tuple, Optional
@@ -124,7 +123,6 @@ def get_arg_parser() -> Tuple[
 
 def main() -> None:
     """Main entry point for the Tripwire command line interface."""
-    multiprocessing.freeze_support()
     parser, print_help_commands = get_arg_parser()
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
