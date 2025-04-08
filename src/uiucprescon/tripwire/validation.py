@@ -1,3 +1,5 @@
+"""Validation module for checksum files."""
+
 import hashlib
 import io
 import os
@@ -62,6 +64,7 @@ def get_file_hash(
         path: file path
         hashing_algorithm: hashing algorithm to use such as hashlib.md5
         progress_reporter: callback to a function that reports progress
+        hashing_strategy: strategy to use for hashing
 
     Returns: hash value
 
@@ -187,6 +190,9 @@ def validate_directory_checksums_command(
 
     Args:
         path: path to directory containing checksums and matching files
+        locate_checksum_strategy: strategy to locate checksum files
+        read_checksums_strategy: strategy to read checksum files
+        compare_checksum_to_target_strategy: strategy to compare checksum files
 
     """
     logger.info("Locating checksums files...")
