@@ -8,7 +8,8 @@ maintainers = [
 authors = [
     {name="University Library at The University of Illinois at Urbana Champaign: Preservation Services", email="prescons@library.illinois.edu"}
 ]
-license = { file="LICENSE"}
+license = "NCSA"
+license-files = ["LICENSE"]
 description = "Tripwire is a tool for automating digital preservation tasks specifically for AV."
 readme = { file= "README.md", content-type="text/markdown" }
 dependencies = [
@@ -22,7 +23,7 @@ documentation = "https://uiuclibrary.github.io/tripwire/"
 tripwire = "uiucprescon.tripwire.main:main"
 
 [build-system]
-requires = ["setuptools>=75.1.0"]
+requires = ["setuptools>=77.0.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
