@@ -1,6 +1,6 @@
 [project]
 name = "uiucprescon.tripwire"
-version = "0.3.0"
+version = "0.3.1.dev1"
 requires-python = ">= 3.11"
 maintainers = [
     { name="Henry Borchers", email="hborcher@illinois.edu" }
