@@ -607,7 +607,7 @@ pipeline {
                                 stage('Package'){
                                     agent{
                                         docker{
-                                            image 'python:windowsservercore-ltsc2022'
+                                            image 'python'
                                             label 'windows && docker && x86_64'
                                             args '--mount source=uv_python_install_dir,target=C:\\Users\\ContainerUser\\Documents\\uvpython'
                                         }
@@ -639,7 +639,7 @@ pipeline {
                                 stage('Test package'){
                                     agent {
                                         docker {
-                                            image 'mcr.microsoft.com/windows/servercore:ltsc2022'
+                                            image 'mcr.microsoft.com/windows/servercore:ltsc2025'
                                             label 'windows && docker && x86_64'
                                         }
                                     }
