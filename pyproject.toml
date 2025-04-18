@@ -13,7 +13,8 @@ license-files = ["LICENSE"]
 description = "Tripwire is a tool for automating digital preservation tasks specifically for AV."
 readme = { file= "README.md", content-type="text/markdown" }
 dependencies = [
-    "tqdm"
+    "argcomplete",
+    "tqdm",
 ]
 [project.urls]
 project = "https://github.com/UIUCLibrary/tripwire"
