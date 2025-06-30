@@ -49,6 +49,15 @@ def deployStandalone(glob, url) {
         }
     }
 }
+def get_sonarqube_unresolved_issues(report_task_file){
+    script{
+
+        def props = readProperties  file: report_task_file
+        def response = httpRequest url : props['serverUrl'] + '/api/issues/search?componentKeys=' + props['projectKey'] + '&resolved=no'
+        def outstandingIssues = readJSON text: response.content
+        return outstandingIssues
+    }
+}
 
 def deploySingleStandalone(file, url, authentication) {
     script{
@@ -276,19 +285,24 @@ pipeline {
                                 }
                             }
                             steps{
-                                    withSonarQubeEnv(installationName: 'sonarcloud', credentialsId: params.SONARCLOUD_TOKEN) {
-                                        sh(
-                                            label: 'Running Sonar Scanner',
-                                            script: "./venv/bin/uvx pysonar-scanner -Dsonar.projectVersion=${env.VERSION} -Dsonar.python.xunit.reportPath=./reports/tests/pytest/pytest-junit.xml -Dsonar.python.coverage.reportPaths=./reports/coverage.xml -Dsonar.python.ruff.reportPaths=./reports/ruffoutput.json -Dsonar.python.mypy.reportPaths=./logs/mypy.log ${env.CHANGE_ID ? '-Dsonar.pullrequest.key=$CHANGE_ID -Dsonar.pullrequest.base=$BRANCH_NAME' : '-Dsonar.branch.name=$BRANCH_NAME' }",
-                                        )
+                                withSonarQubeEnv(installationName: 'sonarcloud', credentialsId: params.SONARCLOUD_TOKEN) {
+                                    sh(
+                                        label: 'Running Sonar Scanner',
+                                        script: "./venv/bin/uvx pysonar-scanner -Dsonar.projectVersion=${env.VERSION} -Dsonar.python.xunit.reportPath=./reports/tests/pytest/pytest-junit.xml -Dsonar.python.coverage.reportPaths=./reports/coverage.xml -Dsonar.python.ruff.reportPaths=./reports/ruffoutput.json -Dsonar.python.mypy.reportPaths=./logs/mypy.log ${env.CHANGE_ID ? '-Dsonar.pullrequest.key=$CHANGE_ID -Dsonar.pullrequest.base=$BRANCH_NAME' : '-Dsonar.branch.name=$BRANCH_NAME' }",
+                                    )
+                                }
+                                script{
+                                    timeout(time: 1, unit: 'HOURS') {
+                                        def sonarqubeResult = waitForQualityGate(abortPipeline: false, credentialsId: params.SONARCLOUD_TOKEN)
+                                        if (sonarqubeResult.status != 'OK') {
+                                           unstable "SonarQube quality gate: ${sonarqubeResult.status}"
+                                       }
+                                       if(env.BRANCH_IS_PRIMARY){
+                                           def outstandingIssues = get_sonarqube_unresolved_issues('.scannerwork/report-task.txt')
+                                           writeJSON file: 'reports/sonar-report.json', json: outstandingIssues
+                                           recordIssues(tools: [sonarQube(pattern: 'reports/sonar-report.json')])
+                                       }
                                     }
-                                    script{
-                                        timeout(time: 1, unit: 'HOURS') {
-                                            def sonarqubeResult = waitForQualityGate(abortPipeline: false, credentialsId: params.SONARCLOUD_TOKEN)
-                                            if (sonarqubeResult.status != 'OK') {
-                                               unstable "SonarQube quality gate: ${sonarqubeResult.status}"
-                                           }
-                                        }
                                 }
                             }
                             post{
