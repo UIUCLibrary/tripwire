@@ -344,7 +344,7 @@ pipeline {
                                     script: '''python3 -m venv venv
                                                trap "rm -rf venv" EXIT
                                                venv/bin/pip install --disable-pip-version-check uv
-                                               venv/bin/uv build
+                                               venv/bin/uv build --build-constraints=requirements-dev.txt
                                             '''
                                 )
                             }
