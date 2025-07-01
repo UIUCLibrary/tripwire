@@ -115,6 +115,7 @@ pipeline {
                         UV_TOOL_DIR='/tmp/uvtools'
                         UV_PYTHON_INSTALL_DIR='/tmp/uvpython'
                         UV_CACHE_DIR='/tmp/uvcache'
+                        UV_CONSTRAINT='requirements-dev.txt'
                     }
                     agent {
                         docker{
@@ -345,6 +346,7 @@ pipeline {
                                 PIP_CACHE_DIR='/tmp/pipcache'
                                 UV_INDEX_STRATEGY='unsafe-best-match'
                                 UV_CACHE_DIR='/tmp/uvcache'
+                                UV_CONSTRAINT='requirements-dev.txt'
                             }
                             agent {
                                 docker {
@@ -381,6 +383,7 @@ pipeline {
                             }
                             environment{
                                 UV_INDEX_STRATEGY='unsafe-best-match'
+                                UV_CONSTRAINT='requirements-dev.txt'
                             }
                             steps{
                                 customMatrix(
@@ -718,6 +721,7 @@ pipeline {
                         UV_TOOL_DIR='/tmp/uvtools'
                         UV_PYTHON_INSTALL_DIR='/tmp/uvpython'
                         UV_CACHE_DIR='/tmp/uvcache'
+                        UV_CONSTRAINT='requirements-dev.txt'
                     }
                     agent {
                         docker{
