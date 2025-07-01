@@ -121,7 +121,7 @@ pipeline {
                         docker{
                             image 'python'
                             label 'docker && linux && x86_64'
-                            args '--mount source=uv_python_install_dir,target=/tmp/uvpython'
+                            args '--mount source=tripwire_cache,target=/tmp'
                         }
 
                     }
@@ -346,12 +346,15 @@ pipeline {
                                 PIP_CACHE_DIR='/tmp/pipcache'
                                 UV_INDEX_STRATEGY='unsafe-best-match'
                                 UV_CACHE_DIR='/tmp/uvcache'
+                                UV_TOOL_DIR='/tmp/uvtools'
+                                UV_PYTHON_INSTALL_DIR='/tmp/uvpython'
                                 UV_CONSTRAINT='requirements-dev.txt'
                             }
                             agent {
                                 docker {
                                     image 'python'
                                     label 'docker && linux'
+                                    args '--mount source=tripwire_cache,target=/tmp'
                                 }
                             }
                             steps{
@@ -426,7 +429,14 @@ pipeline {
                                                         checkout scm
                                                         unstash 'PYTHON_PACKAGES'
                                                         if(['linux', 'windows'].contains(entry.OS) && params.containsKey("INCLUDE_${entry.OS}-${entry.ARCHITECTURE}".toUpperCase()) && params["INCLUDE_${entry.OS}-${entry.ARCHITECTURE}".toUpperCase()]){
-                                                            docker.image(env.DEFAULT_PYTHON_DOCKER_IMAGE ? env.DEFAULT_PYTHON_DOCKER_IMAGE: 'python').inside(isUnix() ? '': "--mount type=volume,source=uv_python_install_dir,target=C:\\Users\\ContainerUser\\Documents\\uvpython"){
+                                                            docker.image(env.DEFAULT_PYTHON_DOCKER_IMAGE ? env.DEFAULT_PYTHON_DOCKER_IMAGE: 'python')
+                                                                .inside(
+                                                                    isUnix() ?
+                                                                        '--mount source=tripwire_cache,target=/tmp' :
+                                                                        "--mount type=volume,source=uv_python_install_dir,target=C:\\Users\\ContainerUser\\Documents\\cache\\uvpython \
+                                                                        --mount type=volume,source=pipcache,target=C:\\Users\\ContainerUser\\Documents\\cache\\pipcache \
+                                                                        --mount type=volume,source=uv_cache_dir,target=C:\\Users\\ContainerUser\\Documents\\cache\\uvcache"
+                                                                ){
                                                                  if(isUnix()){
                                                                     withEnv([
                                                                         'PIP_CACHE_DIR=/tmp/pipcache',
@@ -445,10 +455,10 @@ pipeline {
                                                                     }
                                                                  } else {
                                                                     withEnv([
-                                                                        'PIP_CACHE_DIR=C:\\Users\\ContainerUser\\Documents\\pipcache',
-                                                                        'UV_TOOL_DIR=C:\\Users\\ContainerUser\\Documents\\uvtools',
-                                                                        'UV_PYTHON_INSTALL_DIR=C:\\Users\\ContainerUser\\Documents\\uvpython',
-                                                                        'UV_CACHE_DIR=C:\\Users\\ContainerUser\\Documents\\uvcache',
+                                                                        'PIP_CACHE_DIR=C:\\Users\\ContainerUser\\Documents\\cache\\pipcache',
+                                                                        'UV_TOOL_DIR=C:\\Users\\ContainerUser\\Documents\\cache\\uvtools',
+                                                                        'UV_PYTHON_INSTALL_DIR=C:\\Users\\ContainerUser\\Documents\\cache\\uvpython',
+                                                                        'UV_CACHE_DIR=C:\\Users\\ContainerUser\\Documents\\cache\\uvcache',
                                                                     ]){
                                                                         powershell(
                                                                             label: 'Testing with tox',
