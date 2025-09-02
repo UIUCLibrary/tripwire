@@ -165,3 +165,32 @@ This example shows how to show metadata for all .wav files in a directory regard
                  'stream_identifier': '0',
                  'stream_size': 765591552,
                  'track_type': 'Audio'}]}
+
+
+validate
+--------
+
+The subcommand, `validate`, validates metadata of files against a policy file. The policy file is an XML file that defines the
+rules for validation. The rules can check for various properties of the files such as bit depth, sample rate,
+resolution, etc. This xml file can be created using the
+`MediaConch GUI application by MediaArea <https://mediaarea.net/MediaConch>`_ and exported as a policy file.
+
+
+example usage:
+
+This example shows how to validate all .wav files in a directory regardless of depth and validate them against a
+policy file that checks for 24 bit depth wav files.
+
+.. code-block:: shell-session
+
+    user@WORKMACHINE123 % tripwire metadata validate "./preservation waves are 24-bit.xml" "/Volumes/G-RAID with Thunderbolt/sample data/media/UIUC_0028/**/*.wav"
+    validating /Volumes/G-RAID with Thunderbolt/sample data/media/UIUC_0028/Preservation/28_pres_01.wav
+    validating /Volumes/G-RAID with Thunderbolt/sample data/media/UIUC_0028/Preservation/28_pres_01.wav: Fail
+    ==================
+    Validation Results
+    ==================
+
+    File: /Volumes/G-RAID with Thunderbolt/sample data/media/UIUC_0028/Preservation/28_pres_01.wav
+    Issues:
+       Rule "24 bit" failed.  Expected: 24, Got: 25
+    failed metadata validation

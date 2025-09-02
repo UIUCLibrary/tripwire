@@ -16,6 +16,7 @@ dependencies = [
     "argcomplete",
     "pymediainfo",
     "tqdm",
+    "uiucprescon.pymediaconch",
 ]
 [project.urls]
 project = "https://github.com/UIUCLibrary/tripwire"

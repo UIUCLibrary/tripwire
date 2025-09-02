@@ -20,3 +20,16 @@ tqdm==4.67.1 \
     --hash=sha256:26445eca388f82e72884e0d580d5464cd801a3ea01e63e5601bdff9ba6a48de2 \
     --hash=sha256:f8aef9c52c08c13a65f30ea34f4e5aac3fd1a34959879d7e59e63027286627f2
     # via uiucprescon-tripwire (pyproject.toml)
+uiucprescon-pymediaconch==0.1.0 \
+    --hash=sha256:150e42690b915a59891486075d47317dcf06949b15f9937e878e771a4b22f275 \
+    --hash=sha256:1846365148655833f0cc3a7443e0f461d2109e68e3595709ace1ba8843080403 \
+    --hash=sha256:2756158a18877f73dc49e8d0dd47d91792668681dfd121aef975ffb8d2932d43 \
+    --hash=sha256:28f70cdf968a1817a512fa978574caa5dba75ea358a1ec579cdbfbdb69d9d599 \
+    --hash=sha256:2d9b0b6c6ae38bc2ced7f7445b8106919d0bc1c42f5c1ad35a04813ef66926b1 \
+    --hash=sha256:2e4c7cebdc4cd972df4af33c2639e17d47cb570b8bdfd8e4bc209beb5c20f4a0 \
+    --hash=sha256:527b3c3a0a4186837938a3c61aa9bbe16fd7875b0b650cc4e78fb562a9afd599 \
+    --hash=sha256:8753ab086879695c76faecd110b77850cfd8a47693cec9e680afc036d2b02ef4 \
+    --hash=sha256:b3eba74ea3ca3d4c8442b5cdc74bb44bc0e02b53286c2e9e842d4dbf4686f251 \
+    --hash=sha256:bd677ccd76ca1dc31aa3debe19857aea54b14d19a3b5bb3b3db1452c94a44a73 \
+    --hash=sha256:c4bd27f4b36a46c8368d2fbeaa9c68fc0bb4704f30d06a28b29b922f0f1d05ae
+    # via uiucprescon-tripwire (pyproject.toml)

@@ -6,15 +6,15 @@ argcomplete==3.6.2
     # via -r requirements.txt
 babel==2.17.0
     # via sphinx
-cachetools==6.1.0
+cachetools==6.2.0
     # via tox
-certifi==2025.7.14
+certifi==2025.8.3
     # via requests
 cfgv==3.4.0
     # via pre-commit
 chardet==5.2.0
     # via tox
-charset-normalizer==3.4.2
+charset-normalizer==3.4.3
     # via requests
 colorama==0.4.6
     # via
@@ -23,17 +23,17 @@ colorama==0.4.6
     #   sphinx
     #   tox
     #   tqdm
-coverage==7.10.1
+coverage==7.10.5
     # via -r requirements/requirements-dev.in
 distlib==0.4.0
     # via virtualenv
 docutils==0.21.2
     # via sphinx
-filelock==3.18.0
+filelock==3.19.1
     # via
     #   tox
     #   virtualenv
-identify==2.6.12
+identify==2.6.13
     # via pre-commit
 idna==3.10
     # via requests
@@ -43,11 +43,11 @@ iniconfig==2.1.0
     # via pytest
 jinja2==3.1.6
     # via sphinx
-lxml==6.0.0
+lxml==6.0.1
     # via -r requirements/requirements-dev.in
 markupsafe==3.0.2
     # via jinja2
-mypy==1.17.0
+mypy==1.17.1
     # via -r requirements/requirements-dev.in
 mypy-extensions==1.1.0
     # via mypy
@@ -61,7 +61,7 @@ packaging==25.0
     #   tox
 pathspec==0.12.1
     # via mypy
-platformdirs==4.3.8
+platformdirs==4.4.0
     # via
     #   tox
     #   virtualenv
@@ -69,7 +69,7 @@ pluggy==1.6.0
     # via
     #   pytest
     #   tox
-pre-commit==4.2.0
+pre-commit==4.3.0
     # via -r requirements/requirements-dev.in
 pygments==2.19.2
     # via
@@ -83,11 +83,11 @@ pytest==8.4.1
     # via -r requirements/requirements-dev.in
 pyyaml==6.0.2
     # via pre-commit
-requests==2.32.4
+requests==2.32.5
     # via sphinx
 roman-numerals-py==3.1.0
     # via sphinx
-ruff==0.12.5
+ruff==0.12.11
     # via -r requirements/requirements-dev.in
 snowballstemmer==3.0.1
     # via sphinx
@@ -105,21 +105,25 @@ sphinxcontrib-qthelp==2.0.0
     # via sphinx
 sphinxcontrib-serializinghtml==2.0.0
     # via sphinx
-tox==4.28.3
+tox==4.28.4
     # via -r requirements/requirements-dev.in
 tqdm==4.67.1
     # via -r requirements.txt
-types-requests==2.32.4.20250611
+types-requests==2.32.4.20250809
     # via types-tqdm
-types-tqdm==4.67.0.20250516
+types-tqdm==4.67.0.20250809
     # via -r requirements/requirements-dev.in
-typing-extensions==4.14.1
+typing-extensions==4.15.0
     # via mypy
+uiucprescon-pymediaconch==0.1.0
+    # via
+    #   -r requirements/requirements-dev.in
+    #   -r requirements.txt
 urllib3==2.5.0
     # via
     #   requests
     #   types-requests
-virtualenv==20.32.0
+virtualenv==20.34.0
     # via
     #   pre-commit
     #   tox

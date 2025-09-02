@@ -121,6 +121,10 @@ def get_arg_parser() -> Tuple[
 
     metadata_show_show.add_argument("glob", type=str)
 
+    metadata_validate = metadata_parser.add_parser("validate")
+    metadata_validate.add_argument("policy_file", type=pathlib.Path)
+    metadata_validate.add_argument("glob", type=str)
+
     return (
         parser,
         {
@@ -138,11 +142,25 @@ def metadata_show_command(args: argparse.Namespace) -> None:
     metadata.show_metadata(args.glob, search_path=pathlib.Path("."))
 
 
+@capture_log(logger=metadata.logger)
+def metadata_validate_command(args: argparse.Namespace) -> None:
+    """Run metadata validate command."""
+    if not metadata.validate_metadata(
+        args.glob, policy_xml_file=args.policy_file
+    ):
+        print("failed metadata validation")
+        exit(1)
+
+    print("passed metadata validation")
+
+
 def metadata_command(args: argparse.Namespace, subcommand: str) -> None:
     """Run metadata command."""
     match subcommand:
         case "show":
             metadata_show_command(args)
+        case "validate":
+            metadata_validate_command(args)
         case _:
             raise ValueError(f"Unknown metadata subcommand: {subcommand}")
 
