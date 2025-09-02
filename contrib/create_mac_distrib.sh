@@ -15,9 +15,11 @@ create_standalone(){
     shift;
 
 #     Generates the .egg-info needed for the version metadata
+    temp_dir=$(mktemp -d)
+    REQUIREMENTS_FILE="${temp_dir}/requirements.txt"
     $uv_path build --wheel
-
-    $uv_path run --with-requirements requirements.txt $FREEZE_SCRIPT --include-tab-completions tripwire ./contrib/bootstrap_standalone.py
+    $uv_path export --format requirements-txt --no-dev --no-emit-project > $REQUIREMENTS_FILE
+    $uv_path run --with-requirements $REQUIREMENTS_FILE $FREEZE_SCRIPT --include-tab-completions tripwire ./contrib/bootstrap_standalone.py
 }
 
 
