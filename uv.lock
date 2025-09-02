@@ -1,13 +1,36 @@
 version = 1
+revision = 3
 requires-python = ">=3.11"
+
+[[package]]
+name = "argcomplete"
+version = "3.6.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/16/0f/861e168fc813c56a78b35f3c30d91c6757d1fd185af1110f1aec784b35d0/argcomplete-3.6.2.tar.gz", hash = "sha256:d0519b1bc867f5f4f4713c41ad0aba73a4a5f007449716b16f385f2166dc6adf", size = 73403, upload-time = "2025-04-03T04:57:03.52Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/31/da/e42d7a9d8dd33fa775f467e4028a47936da2f01e4b0e561f9ba0d74cb0ca/argcomplete-3.6.2-py3-none-any.whl", hash = "sha256:65b3133a29ad53fb42c48cf5114752c7ab66c1c38544fdf6460f450c09b42591", size = 43708, upload-time = "2025-04-03T04:57:01.591Z" },
+]
 
 [[package]]
 name = "colorama"
 version = "0.4.6"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d8/53/6f443c9a4a8358a93a6792e2acffb9d9d5cb0a5cfd8802644b7b1c9a02e4/colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44", size = 27697 }
+sdist = { url = "https://files.pythonhosted.org/packages/d8/53/6f443c9a4a8358a93a6792e2acffb9d9d5cb0a5cfd8802644b7b1c9a02e4/colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44", size = 27697, upload-time = "2022-10-25T02:36:22.414Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6", size = 25335 },
+    { url = "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6", size = 25335, upload-time = "2022-10-25T02:36:20.889Z" },
+]
+
+[[package]]
+name = "pymediainfo"
+version = "7.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/4d/80/80a6fb21005b81e30f6193d45cba13857df09f5d483e0551fa6fbb3aaeed/pymediainfo-7.0.1.tar.gz", hash = "sha256:0d5df59ecc615e24c56f303b8f651579c6accab7265715e5d429186d7ba21514", size = 441563, upload-time = "2025-02-12T14:33:15.038Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a6/4a/d895646df3d3ff617b54d7f06a02ed9d6f5b86673030a543927310e0f7ed/pymediainfo-7.0.1-py3-none-macosx_10_10_universal2.whl", hash = "sha256:286f3bf6299be0997093254e0f371855bc5cf2aaf8641d19455a011e3ee3a84d", size = 6983332, upload-time = "2025-02-12T14:42:47.412Z" },
+    { url = "https://files.pythonhosted.org/packages/77/df/bc6b5a08e908c64a81f6ff169716d408ce7380ceff44e1eceb095f49e0dc/pymediainfo-7.0.1-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:3648e2379fa67bd02433d1e28c707df3a53834dd480680615a9fefd2266f1182", size = 5768082, upload-time = "2025-02-12T14:33:10.543Z" },
+    { url = "https://files.pythonhosted.org/packages/02/10/a9bc1446a48d3a15940eb1af79a71978f368f27e2cc86f9ec3ec2d206a20/pymediainfo-7.0.1-py3-none-manylinux_2_27_x86_64.whl", hash = "sha256:cde98112f1ce486589b17a12e5da42085faea996224f7c67fa45b8c1dca719c6", size = 6001553, upload-time = "2025-02-12T14:33:12.663Z" },
+    { url = "https://files.pythonhosted.org/packages/ed/7f/c48f8514cb60c9ff9be81b6f383e73e66c7461ef854a1b62628e3c823f13/pymediainfo-7.0.1-py3-none-win32.whl", hash = "sha256:01bcaf82b72cefbf4b96f13b2547e1b2e0e734bab7173d7c33f7f01acc07c98b", size = 3125046, upload-time = "2025-02-12T15:04:39.89Z" },
+    { url = "https://files.pythonhosted.org/packages/e7/26/9d50c2a330541bc36c0ea7ce29eeff5b0c35c2624139660df8bcfa9ae3ce/pymediainfo-7.0.1-py3-none-win_amd64.whl", hash = "sha256:13224fa7590e198763b8baf072e704ea81d334e71aa32a469091460e243893c7", size = 3271232, upload-time = "2025-02-12T15:07:13.672Z" },
 ]
 
 [[package]]
@@ -15,20 +38,51 @@ name = "tqdm"
 version = "4.67.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "platform_system == 'Windows'" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a8/4b/29b4ef32e036bb34e4ab51796dd745cdba7ed47ad142a9f4a1eb8e0c744d/tqdm-4.67.1.tar.gz", hash = "sha256:f8aef9c52c08c13a65f30ea34f4e5aac3fd1a34959879d7e59e63027286627f2", size = 169737 }
+sdist = { url = "https://files.pythonhosted.org/packages/a8/4b/29b4ef32e036bb34e4ab51796dd745cdba7ed47ad142a9f4a1eb8e0c744d/tqdm-4.67.1.tar.gz", hash = "sha256:f8aef9c52c08c13a65f30ea34f4e5aac3fd1a34959879d7e59e63027286627f2", size = 169737, upload-time = "2024-11-24T20:12:22.481Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d0/30/dc54f88dd4a2b5dc8a0279bdd7270e735851848b762aeb1c1184ed1f6b14/tqdm-4.67.1-py3-none-any.whl", hash = "sha256:26445eca388f82e72884e0d580d5464cd801a3ea01e63e5601bdff9ba6a48de2", size = 78540 },
+    { url = "https://files.pythonhosted.org/packages/d0/30/dc54f88dd4a2b5dc8a0279bdd7270e735851848b762aeb1c1184ed1f6b14/tqdm-4.67.1-py3-none-any.whl", hash = "sha256:26445eca388f82e72884e0d580d5464cd801a3ea01e63e5601bdff9ba6a48de2", size = 78540, upload-time = "2024-11-24T20:12:19.698Z" },
 ]
 
 [[package]]
-name = "tripwire"
-version = "0.2.0.dev2"
+name = "uiucprescon-pymediaconch"
+version = "0.1.0"
+source = { registry = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/simple" }
+sdist = { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.0/uiucprescon_pymediaconch-0.1.0.tar.gz", hash = "sha256:b3eba74ea3ca3d4c8442b5cdc74bb44bc0e02b53286c2e9e842d4dbf4686f251" }
+wheels = [
+    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.0/uiucprescon_pymediaconch-0.1.0-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:cf163374cfb5cb8d1a6bd0208ebfb318e2f5cc3e032e45b2768a379324b29c78" },
+    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.0/uiucprescon_pymediaconch-0.1.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:2af0c5fa4ed1a6505ff980c01cdac48d90fb741bb81e33264c0c86f7e544a0e7" },
+    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.0/uiucprescon_pymediaconch-0.1.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:54713369ed994a63020c38befa86a5dbaaf4977cac44a12dff9b06f04bd1bda8" },
+    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.0/uiucprescon_pymediaconch-0.1.0-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:ed2a6ae9495ab913d4ed2ded6b1bdb3e0c31278d9e7dc84167a5a11be9bcc071" },
+    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.0/uiucprescon_pymediaconch-0.1.0-cp311-cp311-win_amd64.whl", hash = "sha256:77ea93ac49b082f27aed3826b3f7637c04ddf453ee142d2f0936c9c7a89f036a" },
+    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.0/uiucprescon_pymediaconch-0.1.0-cp312-cp312-macosx_10_9_universal2.whl", hash = "sha256:c4bd27f4b36a46c8368d2fbeaa9c68fc0bb4704f30d06a28b29b922f0f1d05ae" },
+    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.0/uiucprescon_pymediaconch-0.1.0-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:150e42690b915a59891486075d47317dcf06949b15f9937e878e771a4b22f275" },
+    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.0/uiucprescon_pymediaconch-0.1.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:2d9b0b6c6ae38bc2ced7f7445b8106919d0bc1c42f5c1ad35a04813ef66926b1" },
+    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.0/uiucprescon_pymediaconch-0.1.0-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:28f70cdf968a1817a512fa978574caa5dba75ea358a1ec579cdbfbdb69d9d599" },
+    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.0/uiucprescon_pymediaconch-0.1.0-cp312-cp312-win_amd64.whl", hash = "sha256:2756158a18877f73dc49e8d0dd47d91792668681dfd121aef975ffb8d2932d43" },
+    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.0/uiucprescon_pymediaconch-0.1.0-cp313-cp313-macosx_10_15_universal2.whl", hash = "sha256:1846365148655833f0cc3a7443e0f461d2109e68e3595709ace1ba8843080403" },
+    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.0/uiucprescon_pymediaconch-0.1.0-cp313-cp313-macosx_10_15_x86_64.whl", hash = "sha256:2e4c7cebdc4cd972df4af33c2639e17d47cb570b8bdfd8e4bc209beb5c20f4a0" },
+    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.0/uiucprescon_pymediaconch-0.1.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:bd677ccd76ca1dc31aa3debe19857aea54b14d19a3b5bb3b3db1452c94a44a73" },
+    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.0/uiucprescon_pymediaconch-0.1.0-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:8753ab086879695c76faecd110b77850cfd8a47693cec9e680afc036d2b02ef4" },
+    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.0/uiucprescon_pymediaconch-0.1.0-cp313-cp313-win_amd64.whl", hash = "sha256:527b3c3a0a4186837938a3c61aa9bbe16fd7875b0b650cc4e78fb562a9afd599" },
+]
+
+[[package]]
+name = "uiucprescon-tripwire"
+version = "0.3.3.dev0"
 source = { editable = "." }
 dependencies = [
+    { name = "argcomplete" },
+    { name = "pymediainfo" },
     { name = "tqdm" },
+    { name = "uiucprescon-pymediaconch" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "tqdm" }]
+requires-dist = [
+    { name = "argcomplete" },
+    { name = "pymediainfo" },
+    { name = "tqdm" },
+    { name = "uiucprescon-pymediaconch" },
+]

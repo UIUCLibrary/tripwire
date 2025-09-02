@@ -14,7 +14,9 @@ description = "Tripwire is a tool for automating digital preservation tasks spec
 readme = { file= "README.md", content-type="text/markdown" }
 dependencies = [
     "argcomplete",
+    "pymediainfo",
     "tqdm",
+    "uiucprescon.pymediaconch",
 ]
 [project.urls]
 project = "https://github.com/UIUCLibrary/tripwire"
