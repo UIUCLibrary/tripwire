@@ -25,6 +25,22 @@ documentation = "https://uiuclibrary.github.io/tripwire/"
 [project.scripts]
 tripwire = "uiucprescon.tripwire.main:main"
 
+[dependency-groups]
+test = ["pytest>7", "coverage"]
+docs = ["sphinx"]
+dev = [
+    "lxml",
+    "mypy",
+    "pre-commit",
+    "pytest",
+    "ruff",
+    "tox",
+    "types-tqdm",
+    {include-group = "docs"},
+    {include-group = "test"},
+    ]
+ci = ["twine", "pysonar", {include-group = "dev"}]
+
 [build-system]
 requires = ["setuptools>=77.0.0"]
 build-backend = "setuptools.build_meta"
