@@ -112,7 +112,6 @@ pipeline {
                 stage('Build and Test'){
                     environment{
                         PIP_CACHE_DIR='/tmp/pipcache'
-                        UV_INDEX_STRATEGY='unsafe-best-match'
                         UV_TOOL_DIR='/tmp/uvtools'
                         UV_PYTHON_INSTALL_DIR='/tmp/uvpython'
                         UV_CACHE_DIR='/tmp/uvcache'
@@ -343,7 +342,6 @@ pipeline {
                         stage('Create Python Packages'){
                             environment{
                                 PIP_CACHE_DIR='/tmp/pipcache'
-                                UV_INDEX_STRATEGY='unsafe-best-match'
                                 UV_CACHE_DIR='/tmp/uvcache'
                                 UV_TOOL_DIR='/tmp/uvtools'
                                 UV_PYTHON_INSTALL_DIR='/tmp/uvpython'
@@ -384,7 +382,6 @@ pipeline {
                                 equals expected: true, actual: params.TEST_PACKAGES
                             }
                             environment{
-                                UV_INDEX_STRATEGY='unsafe-best-match'
                                 UV_CONSTRAINT='requirements-dev.txt'
                             }
                             steps{
@@ -519,7 +516,6 @@ pipeline {
                         }
                     }
                     environment{
-                        UV_INDEX_STRATEGY='unsafe-best-match'
                         UV_PYTHON_PREFERENCE='only-managed'
                     }
                     parallel{
@@ -730,7 +726,6 @@ pipeline {
                 stage('Deploy to pypi') {
                     environment{
                         PIP_CACHE_DIR='/tmp/pipcache'
-                        UV_INDEX_STRATEGY='unsafe-best-match'
                         UV_TOOL_DIR='/tmp/uvtools'
                         UV_PYTHON_INSTALL_DIR='/tmp/uvpython'
                         UV_CACHE_DIR='/tmp/uvcache'
