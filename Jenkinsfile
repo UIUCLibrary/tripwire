@@ -270,6 +270,7 @@ pipeline {
                             }
                             environment{
                                 VERSION="${readTOML( file: 'pyproject.toml')['project'].version}"
+                                SONAR_USER_HOME='/tmp/sonar'
                             }
                             when{
                                 allOf{
@@ -288,10 +289,12 @@ pipeline {
                             }
                             steps{
                                 withSonarQubeEnv(installationName: 'sonarcloud', credentialsId: params.SONARCLOUD_TOKEN) {
-                                    sh(
-                                        label: 'Running Sonar Scanner',
-                                        script: "./venv/bin/uvx pysonar-scanner -Dsonar.projectVersion=${env.VERSION} -Dsonar.python.xunit.reportPath=./reports/tests/pytest/pytest-junit.xml -Dsonar.python.coverage.reportPaths=./reports/coverage.xml -Dsonar.python.ruff.reportPaths=./reports/ruffoutput.json -Dsonar.python.mypy.reportPaths=./logs/mypy.log ${env.CHANGE_ID ? '-Dsonar.pullrequest.key=$CHANGE_ID -Dsonar.pullrequest.base=$BRANCH_NAME' : '-Dsonar.branch.name=$BRANCH_NAME' }",
-                                    )
+                                    withCredentials([string(credentialsId: params.SONARCLOUD_TOKEN, variable: 'token')]) {
+                                        sh(
+                                            label: 'Running Sonar Scanner',
+                                            script: "./venv/bin/uvx pysonar -Dsonar.projectVersion=${env.VERSION} -Dsonar.python.xunit.reportPath=./reports/tests/pytest/pytest-junit.xml -Dsonar.python.coverage.reportPaths=./reports/coverage.xml -Dsonar.python.ruff.reportPaths=./reports/ruffoutput.json -Dsonar.python.mypy.reportPaths=./logs/mypy.log ${env.CHANGE_ID ? '-Dsonar.pullrequest.key=$CHANGE_ID -Dsonar.pullrequest.base=$BRANCH_NAME' : '-Dsonar.branch.name=$BRANCH_NAME' } -t \$token",
+                                        )
+                                    }
                                 }
                                 script{
                                     timeout(time: 1, unit: 'HOURS') {
