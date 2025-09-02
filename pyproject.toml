@@ -25,6 +25,22 @@ documentation = "https://uiuclibrary.github.io/tripwire/"
 [project.scripts]
 tripwire = "uiucprescon.tripwire.main:main"
 
+[dependency-groups]
+test = ["pytest>7", "coverage"]
+docs = ["sphinx"]
+dev = [
+    "lxml",
+    "mypy",
+    "pre-commit",
+    "pytest",
+    "ruff",
+    "tox",
+    "types-tqdm",
+    {include-group = "docs"},
+    {include-group = "test"},
+    ]
+ci = ["twine", "pysonar", {include-group = "dev"}]
+
 [build-system]
 requires = ["setuptools>=77.0.0"]
 build-backend = "setuptools.build_meta"
@@ -65,10 +81,18 @@ envlist = ["3.11", "3.12", "3.13"]
 [tool.tox.env_run_base]
 description = "Run test under {base_python}"
 commands = [["{env_bin_dir}{/}pytest"]]
-deps = [
-    "pytest",
-    "-c requirements-dev.txt"
-]
+dependency_groups = ['test']
 
 [tool.mypy]
 mypy_path = "src"
+
+
+[[tool.uv.index]]
+url = "https://pypi.org/simple"
+default = true
+
+
+[[tool.uv.index]]
+name = "uiuc_prescon_python"
+url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/simple"
+explicit = true

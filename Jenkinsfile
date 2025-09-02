@@ -95,7 +95,8 @@ pipeline {
         booleanParam(name: 'BUILD_PACKAGES', defaultValue: false, description: 'Build Python packages')
         booleanParam(name: 'TEST_PACKAGES', defaultValue: false, description: 'Test packages')
         booleanParam(name: 'INCLUDE_LINUX-X86_64', defaultValue: true, description: 'Include x86_64 architecture for Linux')
-        booleanParam(name: 'INCLUDE_LINUX-ARM64', defaultValue: false, description: 'Include ARM architecture for Linux')
+        //  When mediaconch can be built for arm64, we can enable this again
+        //  booleanParam(name: 'INCLUDE_LINUX-ARM64', defaultValue: false, description: 'Include ARM architecture for Linux')
         booleanParam(name: 'INCLUDE_MACOS-X86_64', defaultValue: false, description: 'Include x86_64 architecture for Mac')
         booleanParam(name: 'INCLUDE_MACOS-ARM64', defaultValue: false, description: 'Include ARM(m1) architecture for Mac')
         booleanParam(name: 'INCLUDE_WINDOWS-X86_64', defaultValue: false, description: 'Include x86_64 architecture for Windows')
@@ -111,11 +112,9 @@ pipeline {
                 stage('Build and Test'){
                     environment{
                         PIP_CACHE_DIR='/tmp/pipcache'
-                        UV_INDEX_STRATEGY='unsafe-best-match'
                         UV_TOOL_DIR='/tmp/uvtools'
                         UV_PYTHON_INSTALL_DIR='/tmp/uvpython'
                         UV_CACHE_DIR='/tmp/uvcache'
-                        UV_CONSTRAINT='requirements-dev.txt'
                     }
                     agent {
                         docker{
@@ -130,16 +129,14 @@ pipeline {
                             steps{
                                 sh(
                                     label: 'Create virtual environment with packaging in development mode',
-                                    script: '''python3 -m venv --clear bootstrap_uv
-                                               trap "rm -rf bootstrap_uv" EXIT
+                                    script: '''python3 -m venv bootstrap_uv
                                                bootstrap_uv/bin/pip install --disable-pip-version-check uv
-                                               rm -rf venv
                                                bootstrap_uv/bin/uv venv venv
                                                . ./venv/bin/activate
-                                               bootstrap_uv/bin/uv pip install uv
+                                               bootstrap_uv/bin/uv sync --active --locked --group ci
+                                               bootstrap_uv/bin/uv pip install --disable-pip-version-check uv
                                                rm -rf bootstrap_uv
-                                               uv pip install -r requirements-dev.txt -e .
-                                               '''
+                                            '''
                                )
                             }
                         }
@@ -147,18 +144,16 @@ pipeline {
                             steps{
                                 catchError(buildResult: 'UNSTABLE', message: 'Sphinx has warnings', stageResult: 'UNSTABLE') {
                                     sh '''. ./venv/bin/activate
-                                          python -m sphinx --builder=html -W --keep-going -w logs/build_sphinx_html.log -d build/docs/.doctrees docs dist/docs/html
+                                          sphinx-build --builder=html -W --keep-going -w logs/build_sphinx_html.log -d build/docs/.doctrees docs dist/docs/html
                                        '''
-                               }
+                                }
+                                publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'dist/docs/html', reportFiles: 'index.html', reportName: 'Documentation', reportTitles: ''])
+                                script{
+                                    def props = readTOML( file: 'pyproject.toml')['project']
+                                    zip archive: true, dir: 'dist/docs/html', glob: '', zipFile: "dist/${props.name}-${props.version}.doc.zip"
+                                }
                             }
                             post{
-                                success{
-                                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'dist/docs/html', reportFiles: 'index.html', reportName: 'Documentation', reportTitles: ''])
-                                    script{
-                                        def props = readTOML( file: 'pyproject.toml')['project']
-                                        zip archive: true, dir: 'dist/docs/html', glob: '', zipFile: "dist/${props.name}-${props.version}.doc.zip"
-                                    }
-                                }
                                 always{
                                     recordIssues(tools: [sphinxBuild(pattern: 'logs/build_sphinx_html.log')])
                                 }
@@ -183,6 +178,13 @@ pipeline {
                                     post {
                                         always {
                                             junit(allowEmptyResults: true, testResults: 'reports/tests/pytest/pytest-junit.xml')
+                                        }
+                                    }
+                                }
+                                stage('Audit uv.lock File'){
+                                    steps{
+                                        catchError(buildResult: 'SUCCESS', message: 'uv-secure found issues', stageResult: 'UNSTABLE') {
+                                            sh './venv/bin/uvx uv-secure --cache-path=/tmp/cache/uv-secure uv.lock'
                                         }
                                     }
                                 }
@@ -269,6 +271,7 @@ pipeline {
                             }
                             environment{
                                 VERSION="${readTOML( file: 'pyproject.toml')['project'].version}"
+                                SONAR_USER_HOME='/tmp/sonar'
                             }
                             when{
                                 allOf{
@@ -287,10 +290,12 @@ pipeline {
                             }
                             steps{
                                 withSonarQubeEnv(installationName: 'sonarcloud', credentialsId: params.SONARCLOUD_TOKEN) {
-                                    sh(
-                                        label: 'Running Sonar Scanner',
-                                        script: "./venv/bin/uvx pysonar-scanner -Dsonar.projectVersion=${env.VERSION} -Dsonar.python.xunit.reportPath=./reports/tests/pytest/pytest-junit.xml -Dsonar.python.coverage.reportPaths=./reports/coverage.xml -Dsonar.python.ruff.reportPaths=./reports/ruffoutput.json -Dsonar.python.mypy.reportPaths=./logs/mypy.log ${env.CHANGE_ID ? '-Dsonar.pullrequest.key=$CHANGE_ID -Dsonar.pullrequest.base=$BRANCH_NAME' : '-Dsonar.branch.name=$BRANCH_NAME' }",
-                                    )
+                                    withCredentials([string(credentialsId: params.SONARCLOUD_TOKEN, variable: 'token')]) {
+                                        sh(
+                                            label: 'Running Sonar Scanner',
+                                            script: "./venv/bin/pysonar -Dsonar.projectVersion=${env.VERSION} -Dsonar.python.xunit.reportPath=./reports/tests/pytest/pytest-junit.xml -Dsonar.python.coverage.reportPaths=./reports/coverage.xml -Dsonar.python.ruff.reportPaths=./reports/ruffoutput.json -Dsonar.python.mypy.reportPaths=./logs/mypy.log ${env.CHANGE_ID ? '-Dsonar.pullrequest.key=$CHANGE_ID -Dsonar.pullrequest.base=$BRANCH_NAME' : '-Dsonar.branch.name=$BRANCH_NAME' } -t \$token",
+                                        )
+                                    }
                                 }
                                 script{
                                     timeout(time: 1, unit: 'HOURS') {
@@ -344,11 +349,9 @@ pipeline {
                         stage('Create Python Packages'){
                             environment{
                                 PIP_CACHE_DIR='/tmp/pipcache'
-                                UV_INDEX_STRATEGY='unsafe-best-match'
                                 UV_CACHE_DIR='/tmp/uvcache'
                                 UV_TOOL_DIR='/tmp/uvtools'
                                 UV_PYTHON_INSTALL_DIR='/tmp/uvpython'
-                                UV_CONSTRAINT='requirements-dev.txt'
                             }
                             agent {
                                 docker {
@@ -363,6 +366,7 @@ pipeline {
                                     script: '''python3 -m venv venv
                                                trap "rm -rf venv" EXIT
                                                venv/bin/pip install --disable-pip-version-check uv
+                                               venv/bin/uv export --format requirements-txt --frozen --no-emit-project --group dev > requirements-dev.txt
                                                venv/bin/uv build --build-constraints=requirements-dev.txt
                                             '''
                                 )
@@ -385,7 +389,6 @@ pipeline {
                                 equals expected: true, actual: params.TEST_PACKAGES
                             }
                             environment{
-                                UV_INDEX_STRATEGY='unsafe-best-match'
                                 UV_CONSTRAINT='requirements-dev.txt'
                             }
                             steps{
@@ -448,8 +451,9 @@ pipeline {
                                                                             label: 'Testing with tox',
                                                                             script: """python3 -m venv venv
                                                                                        ./venv/bin/pip install --disable-pip-version-check uv
+                                                                                       ./venv/bin/uv export --format requirements-txt --frozen --no-emit-project --group dev > ${env.UV_CONSTRAINT}
                                                                                        ./venv/bin/uv python install cpython-${entry.PYTHON_VERSION}
-                                                                                       ./venv/bin/uvx -c requirements-dev.txt --with tox-uv  tox --installpkg ${findFiles(glob: entry.PACKAGE_TYPE == 'wheel' ? 'dist/*.whl' : 'dist/*.tar.gz')[0].path} -e py${entry.PYTHON_VERSION.replace('.', '')}
+                                                                                       ./venv/bin/uvx -c requirements-dev.txt --with tox-uv tox --installpkg ${findFiles(glob: entry.PACKAGE_TYPE == 'wheel' ? 'dist/*.whl' : 'dist/*.tar.gz')[0].path} -e py${entry.PYTHON_VERSION.replace('.', '')}
                                                                                     """
                                                                         )
                                                                     }
@@ -465,7 +469,8 @@ pipeline {
                                                                             script: """python -m venv venv
                                                                                        .\\venv\\Scripts\\pip install --disable-pip-version-check uv
                                                                                        .\\venv\\Scripts\\uv python install cpython-${entry.PYTHON_VERSION}
-                                                                                       .\\venv\\Scripts\\uvx -c requirements-dev.txt --with tox-uv tox --installpkg ${findFiles(glob: entry.PACKAGE_TYPE == 'wheel' ? 'dist/*.whl' : 'dist/*.tar.gz')[0].path} -e py${entry.PYTHON_VERSION.replace('.', '')}
+                                                                                       .\\venv\\Scripts\\uv export --format requirements-txt --frozen --no-emit-project --group dev > ${env.UV_CONSTRAINT}
+                                                                                       .\\venv\\Scripts\\uvx --with tox-uv tox --installpkg ${findFiles(glob: entry.PACKAGE_TYPE == 'wheel' ? 'dist/*.whl' : 'dist/*.tar.gz')[0].path} -e py${entry.PYTHON_VERSION.replace('.', '')}
                                                                                     """
                                                                         )
                                                                     }
@@ -477,7 +482,8 @@ pipeline {
                                                                     label: 'Testing with tox',
                                                                     script: """python3 -m venv venv
                                                                                ./venv/bin/pip install --disable-pip-version-check uv
-                                                                               ./venv/bin/uvx -c requirements-dev.txt --with tox-uv tox --installpkg ${findFiles(glob: entry.PACKAGE_TYPE == 'wheel' ? 'dist/*.whl' : 'dist/*.tar.gz')[0].path} -e py${entry.PYTHON_VERSION.replace('.', '')}
+                                                                               ./venv/bin/uv export --format requirements-txt --frozen --no-emit-project --group dev > ${env.UV_CONSTRAINT}
+                                                                               ./venv/bin/uvx -c ${env.UV_CONSTRAINT} --with tox-uv tox --installpkg ${findFiles(glob: entry.PACKAGE_TYPE == 'wheel' ? 'dist/*.whl' : 'dist/*.tar.gz')[0].path} -e py${entry.PYTHON_VERSION.replace('.', '')}
                                                                             """
                                                                 )
                                                             } else {
@@ -485,8 +491,9 @@ pipeline {
                                                                     label: 'Testing with tox',
                                                                     script: """python -m venv venv
                                                                                .\\venv\\Scripts\\pip install --disable-pip-version-check uv
+                                                                               .\\venv\\Scripts\\uv export --format requirements-txt --frozen --no-emit-project --group dev > ${env.UV_CONSTRAINT}
                                                                                .\\venv\\Scripts\\uv python install cpython-${entry.PYTHON_VERSION}
-                                                                               .\\venv\\Scripts\\uvx -c requirements-dev.txt --with tox-uv tox --installpkg ${findFiles(glob: entry.PACKAGE_TYPE == 'wheel' ? 'dist/*.whl' : 'dist/*.tar.gz')[0].path} -e py${entry.PYTHON_VERSION.replace('.', '')}
+                                                                               .\\venv\\Scripts\\uvx -c ${env.UV_CONSTRAINT} --with tox-uv tox --installpkg ${findFiles(glob: entry.PACKAGE_TYPE == 'wheel' ? 'dist/*.whl' : 'dist/*.tar.gz')[0].path} -e py${entry.PYTHON_VERSION.replace('.', '')}
                                                                             """
                                                                 )
                                                             }
@@ -516,7 +523,6 @@ pipeline {
                         }
                     }
                     environment{
-                        UV_INDEX_STRATEGY='unsafe-best-match'
                         UV_PYTHON_PREFERENCE='only-managed'
                     }
                     parallel{
@@ -727,11 +733,9 @@ pipeline {
                 stage('Deploy to pypi') {
                     environment{
                         PIP_CACHE_DIR='/tmp/pipcache'
-                        UV_INDEX_STRATEGY='unsafe-best-match'
                         UV_TOOL_DIR='/tmp/uvtools'
                         UV_PYTHON_INSTALL_DIR='/tmp/uvpython'
                         UV_CACHE_DIR='/tmp/uvcache'
-                        UV_CONSTRAINT='requirements-dev.txt'
                     }
                     agent {
                         docker{
@@ -783,7 +787,8 @@ pipeline {
                                                trap "rm -rf venv" EXIT
                                                . ./venv/bin/activate
                                                pip install --disable-pip-version-check uv
-                                               uvx -c requirements-dev.txt twine upload --disable-progress-bar --non-interactive dist/*
+                                               uv sync --active --locked --group ci
+                                               twine upload --disable-progress-bar --non-interactive dist/*
                                             '''
                                 )
                             }

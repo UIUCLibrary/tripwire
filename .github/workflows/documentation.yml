@@ -24,9 +24,11 @@ jobs:
       - uses: actions/setup-python@v5
       - name: Install dependencies
         run: |
-          pip install -r requirements-dev.txt
+          pip install --disable-pip-version-check uv
+          uv sync --group docs
       - name: Sphinx build
         run: |
+          . ./.venv/bin/activate
           sphinx-build docs _build
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
