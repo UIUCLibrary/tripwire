@@ -97,12 +97,16 @@ example:
 "metadata" Command
 ------------------
 
+*Added in version 0.3.3*
+
 This command contains two subcommands: `show` and `validate`.
 
 .. _metadata_show_command:
 
 "metadata show" command
 -----------------------
+
+*Added in version 0.3.3*
 
 This subcommand, `show`, displays metadata for files using MediaInfo.
 
@@ -201,6 +205,8 @@ This example shows how to show metadata for all .wav files in a directory regard
 
 "metadata validate" Command
 ---------------------------
+
+*Added in version 0.3.3*
 
 The subcommand, `validate`, validates metadata of files against a policy file. The policy file is an XML file that defines the
 rules for validation. The rules can check for various properties of the files such as bit depth, sample rate,
