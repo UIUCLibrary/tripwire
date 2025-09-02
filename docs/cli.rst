@@ -2,6 +2,9 @@
 Using the Command Line
 ======================
 
+
+.. _get_hash:
+
 Getting Help
 ============
 
@@ -20,8 +23,25 @@ To get help at any point you can use the `--help` flag
       {get-hash,manifest-check,validate-checksums}
 
 
-Get Hash
-========
+Tripwire Commands
+=================
+
+Below is the hierarchy of commands that are available in Tripwire.
+
+.. parsed-literal::
+    tripwire
+        ├── :ref:`get-hash <get_hash_command>`
+        ├── :ref:`validate-checksums <validate_checksums>`
+        ├── :ref:`manifest-check <manifest_check>`
+        └── :ref:`metadata <metadata_subcommand>`
+            ├── :ref:`show <metadata_show_command>`
+            └── :ref:`validate <metadata_validate_command>`
+
+
+.. _get_hash_command:
+
+"get-hash" Command
+------------------
 
 To get the hash value of a file, use the `get-hash` command. This will return the hash value of the file in the format
 `<filename> --> <hash type>: <hash value>`.
@@ -32,8 +52,10 @@ To get the hash value of a file, use the `get-hash` command. This will return th
     somefile.wav --> md5: d41d8cd98f00b204e9800998ecf8427e
 
 
-Validate Checksums
-==================
+.. _validate_checksums:
+
+"validate-checksums" Command
+----------------------------
 
 To validate checksums for files in a directory, use the `validate-checksums` command. This search for all files within
 a given path and search for a checksum file. The checksum file must be in the same directory as the files to be
@@ -43,8 +65,11 @@ validated. If the checksum does not match the expected value, you will get notif
 
     user@WORKMACHINE123 % tripwire validate-checksums /path/to/directory
 
-Manifest Check
-==============
+
+.. _manifest_check:
+
+"manifest-check" Command
+------------------------
 
 Added in version 0.2.1
 
@@ -66,13 +91,18 @@ example:
 .. note::
     This will not use a excel file as a manifest. You will have to export the Excel file to a tab separated file first.
 
-Metadata
-========
+
+.. _metadata_subcommand:
+
+"metadata" Command
+------------------
 
 This command contains two subcommands: `show` and `validate`.
 
-show
-----
+.. _metadata_show_command:
+
+"metadata show" command
+-----------------------
 
 This subcommand, `show`, displays metadata for files using MediaInfo.
 
@@ -167,8 +197,10 @@ This example shows how to show metadata for all .wav files in a directory regard
                  'track_type': 'Audio'}]}
 
 
-validate
---------
+.. _metadata_validate_command:
+
+"metadata validate" Command
+---------------------------
 
 The subcommand, `validate`, validates metadata of files against a policy file. The policy file is an XML file that defines the
 rules for validation. The rules can check for various properties of the files such as bit depth, sample rate,
