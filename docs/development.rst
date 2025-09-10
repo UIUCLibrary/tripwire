@@ -8,30 +8,15 @@ Development environment
 
 Set up development environment on Mac and Linux
 
-Using UV instead of pip
------------------------
-
-This way is better and faster than using pip.
-
-.. code-block:: shell-session
-
-    user@DEVMACHINE123 % uv venv
-    user@DEVMACHINE123 % source ./venv/bin/activate
-    (venv) user@DEVMACHINE123 % uv pip sync requirements-dev.txt
-    (venv) user@DEVMACHINE123 % uv pip install -e .
-    (venv) user@DEVMACHINE123 % pre-commit install
-
-Using pip
----------
-
-If you don't have uv installed:
+This project uses `uv <https://docs.astral.sh/uv/>`_ for project development. This is not a runtime requirements but it
+is the primary development configuration so you will need to have
+`uv installed <https://docs.astral.sh/uv/getting-started/installation/>`_ to get the
+`dependency locks <https://docs.astral.sh/uv/concepts/projects/sync/>`_.
 
 .. code-block:: shell-session
 
-    user@DEVMACHINE123 % python -m venv .venv
+    user@DEVMACHINE123 % uv sync --group dev
     user@DEVMACHINE123 % source .venv/bin/activate
-    (venv) user@DEVMACHINE123 % pip install -r requirements-dev.txt
-    (venv) user@DEVMACHINE123 % pip install -e .
     (venv) user@DEVMACHINE123 % pre-commit install
 
 -------------
