@@ -11,3 +11,7 @@ repos:
     - pre-push
   repo: https://github.com/commitizen-tools/commitizen
   rev: v4.5.0
+- repo: https://github.com/owenlamont/uv-secure
+  rev: 0.13.0
+  hooks:
+    - id: uv-secure
