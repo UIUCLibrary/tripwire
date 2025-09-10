@@ -1274,8 +1274,10 @@ ci = [
     { name = "ruff" },
     { name = "sphinx" },
     { name = "tox" },
-    { name = "twine" },
     { name = "types-tqdm" },
+]
+deploy = [
+    { name = "twine" },
 ]
 dev = [
     { name = "coverage" },
@@ -1301,7 +1303,7 @@ requires-dist = [
     { name = "argcomplete" },
     { name = "pymediainfo" },
     { name = "tqdm" },
-    { name = "uiucprescon-pymediaconch" },
+    { name = "uiucprescon-pymediaconch", index = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/simple" },
 ]
 
 [package.metadata.requires-dev]
@@ -1316,9 +1318,9 @@ ci = [
     { name = "ruff" },
     { name = "sphinx" },
     { name = "tox" },
-    { name = "twine" },
     { name = "types-tqdm" },
 ]
+deploy = [{ name = "twine" }]
 dev = [
     { name = "coverage" },
     { name = "lxml" },
