@@ -29,8 +29,7 @@ from typing import (
 import pathlib
 import pymediainfo
 
-# When uiucprescon.pymediaconch gets type stubs, we can remove the ignore
-from uiucprescon.pymediaconch import mediaconch  # type: ignore
+from uiucprescon.pymediaconch import mediaconch
 
 __all__ = ["show_metadata"]
 
