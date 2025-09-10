@@ -13,9 +13,6 @@ on:
 permissions:
   contents: write
 
-env:
-  PIP_EXTRA_INDEX_URL: ${{vars.PIP_EXTRA_INDEX_URL}}
-
 jobs:
   docs:
     runs-on: ubuntu-latest
@@ -25,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --disable-pip-version-check uv
-          uv sync --group docs
+          uv sync --frozen --group docs
       - name: Sphinx build
         run: |
           . ./.venv/bin/activate
