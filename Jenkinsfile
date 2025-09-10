@@ -789,8 +789,7 @@ pipeline {
                                     script: '''python3 -m venv venv
                                                trap "rm -rf venv" EXIT
                                                ./venv/bin/pip install --disable-pip-version-check uv
-                                               UV_PROJECT_ENVIRONMENT=./venv uv sync --frozen --only-group deploy
-                                               ./venv/bin/twine upload --disable-progress-bar --non-interactive dist/*
+                                               ./venv/bin/uv run --frozen --only-group deploy twine upload --disable-progress-bar --non-interactive dist/*
                                             '''
                                 )
                             }
