@@ -137,9 +137,8 @@ pipeline {
                                     script: '''python3 -m venv bootstrap_uv
                                                bootstrap_uv/bin/pip install --disable-pip-version-check uv
                                                bootstrap_uv/bin/uv venv venv
-                                               . ./venv/bin/activate
-                                               bootstrap_uv/bin/uv sync --active --locked --group ci
-                                               bootstrap_uv/bin/uv pip install --disable-pip-version-check uv
+                                               UV_PROJECT_ENVIRONMENT=./venv bootstrap_uv/bin/uv sync --frozen --group ci
+                                               bootstrap_uv/bin/uv pip install --python=./venv/bin/python uv
                                                rm -rf bootstrap_uv
                                             '''
                                )
@@ -789,10 +788,9 @@ pipeline {
                                     label: 'Uploading to pypi',
                                     script: '''python3 -m venv venv
                                                trap "rm -rf venv" EXIT
-                                               . ./venv/bin/activate
-                                               pip install --disable-pip-version-check uv
-                                               uv sync --active --locked --group ci
-                                               twine upload --disable-progress-bar --non-interactive dist/*
+                                               ./venv/bin/pip install --disable-pip-version-check uv
+                                               UV_PROJECT_ENVIRONMENT=./venv uv sync --frozen --only-group deploy
+                                               ./venv/bin/twine upload --disable-progress-bar --non-interactive dist/*
                                             '''
                                 )
                             }

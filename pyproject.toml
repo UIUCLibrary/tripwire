@@ -39,7 +39,8 @@ dev = [
     {include-group = "docs"},
     {include-group = "test"},
     ]
-ci = ["twine", "pysonar", {include-group = "dev"}]
+deploy = ["twine"]
+ci = ["pysonar", {include-group = "dev"}]
 
 [build-system]
 requires = ["setuptools>=77.0.0"]
@@ -96,3 +97,6 @@ default = true
 name = "uiuc_prescon_python"
 url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/simple"
 explicit = true
+
+[tool.uv.sources]
+"uiucprescon.pymediaconch" = {index="uiuc_prescon_python"}
