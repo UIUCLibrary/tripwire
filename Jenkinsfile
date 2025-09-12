@@ -424,6 +424,16 @@ pipeline {
                                                 name: 'ARCHITECTURE',
                                                 values: 'arm64',
                                             ]
+                                        ],
+                                        [
+                                            [
+                                                name: 'OS',
+                                                values: 'linux'
+                                            ],
+                                            [
+                                                name: 'ARCHITECTURE',
+                                                values: 'arm64',
+                                            ]
                                         ]
                                     ],
                                     when: {entry -> "INCLUDE_${entry.OS}-${entry.ARCHITECTURE}".toUpperCase() && params["INCLUDE_${entry.OS}-${entry.ARCHITECTURE}".toUpperCase()]},
