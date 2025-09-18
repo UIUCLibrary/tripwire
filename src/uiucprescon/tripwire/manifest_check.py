@@ -4,12 +4,24 @@ import abc
 import os
 import pathlib
 import typing
-from typing import Mapping, Set, MutableMapping, TextIO, Sequence, Type
+from typing import (
+    Mapping,
+    Set,
+    MutableMapping,
+    TextIO,
+    Sequence,
+    Type,
+    List,
+    Dict,
+)
 import logging
 from uiucprescon.tripwire import files as tripwire_files
 from tqdm import tqdm
 
 __all__ = ["locate_manifest_files"]
+PHOTO_FILE = "photo file"
+ACCESS_FILE = "access file"
+PRESERVATION_FILE = "preservation file"
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -38,8 +50,45 @@ class AbsManifest(abc.ABC):
         """Identify the files from a given row in the manifest."""
 
 
+class KeyDetermineBaseOnList:
+    def __init__(self, pattern: Dict[str, List[str]]):
+        self.pattern = pattern
+
+    @staticmethod
+    def get_for_possible(row, possible_keys: List[str]) -> str:
+        for key in possible_keys:
+            if key in row:
+                return key
+        raise ValueError("all possible keys absent from row")
+
+    def find(self, row, key):
+        try:
+            return self.get_for_possible(row, self.pattern[key])
+        except ValueError as e:
+            raise ValueError(f"Unable to determine row key for {key}") from e
+
+
 class FilmManifest(AbsManifest):
     """Film manifest."""
+
+    def __init__(self):
+        super().__init__()
+        self.key_determine_strategy = KeyDetermineBaseOnList(
+            {
+                PRESERVATION_FILE: [
+                    "Photograph File Name",  # NOSONAR
+                    "Photograph File Name\n(JPEG)",
+                ],
+                ACCESS_FILE: [
+                    "Access File Name",  # NOSONAR
+                    "Access File Name\n(MPEG-4)",
+                ],
+                PHOTO_FILE: [
+                    "Photograph File Name",
+                    "Photograph File Name\n(JPEG)",
+                ],
+            }
+        )
 
     def verify_format_type(self, fp: TextIO) -> bool:
         result = self.is_it_a_film_manifest(fp=fp)
@@ -60,17 +109,20 @@ class FilmManifest(AbsManifest):
         self, row: Mapping[str, str]
     ) -> SearchPackage:
         data: SearchPackage = {}
-        preservation_key = "Preservation File Name\n(uncompressed, MOV)"
+        preservation_key = self.key_determine_strategy.find(
+            row, key=PRESERVATION_FILE
+        )
+
         if preservation_key in row and row[preservation_key]:
             data["preservation_file"] = f"{row[preservation_key]}.mov"
             data["preservation_file_checksum"] = (
                 f"{row[preservation_key]}.mov.md5"
             )
-        access_key = "Access File Name\n(MPEG-4)"
+        access_key = self.key_determine_strategy.find(row, key=ACCESS_FILE)
         if access_key in row and row[access_key]:
             data["access_file"] = f"{row[access_key]}.mp4"
             data["access_file_checksum"] = f"{row[access_key]}.mp4.md5"
-        photo_key = "Photograph File Name\n(JPEG)"
+        photo_key = self.key_determine_strategy.find(row, PHOTO_FILE)
         if photo_key in row and row[photo_key]:
             data["photo_file"] = f"{row[photo_key].strip()}.jpg"
             data["photo_file_checksum"] = f"{row[photo_key].strip()}.jpg.md5"
@@ -83,9 +135,18 @@ class VideoManifest(AbsManifest):
     @staticmethod
     @tripwire_files.remembered_file_pointer
     def is_it_a_video_manifest(fp: TextIO) -> bool:
+        unique_keys = [
+            "Cassette \nNo.",
+            "Cassette No.",
+        ]
         try:
             manifest = tripwire_files.TSVManifest(fp)
-            has_cassette_no_key = "Cassette \nNo." in manifest[0].row_data
+            for key in unique_keys:
+                if key in {k.strip() for k in manifest[0].row_data}:
+                    has_cassette_no_key = key
+                    break
+            else:
+                has_cassette_no_key = None
         except IndexError:
             return False
         if not has_cassette_no_key:
@@ -128,12 +189,32 @@ class VideoManifest(AbsManifest):
 class AudioManifest(AbsManifest):
     """Audio manifest."""
 
+    def __init__(self):
+        super().__init__()
+        self.key_determine_strategy = KeyDetermineBaseOnList(
+            {
+                PRESERVATION_FILE: [
+                    "Preservation File Name",
+                    "Preservation Filename\n(WAVE, 96kHz/24bit)",
+                ],
+                ACCESS_FILE: ["Access File Name", "Access Filename\n(MPEG-3)"],
+                PHOTO_FILE: [
+                    "Photograph File Name",
+                    "Photograph Filenames\n(JPEG)",
+                ],
+            }
+        )
+
     @staticmethod
     @tripwire_files.remembered_file_pointer
     def is_it_an_audio_manifest(fp: TextIO) -> bool:
+        unique_keys = ["Cassette Title", "Reel No."]
         try:
             manifest = tripwire_files.TSVManifest(fp)
-            return "Cassette Title" in manifest[0].row_data
+            for key in set(k for k in manifest[0].row_data):
+                if key.strip() in unique_keys:
+                    return True
+            return False
         except IndexError:
             return False
 
@@ -147,17 +228,19 @@ class AudioManifest(AbsManifest):
         self, row: Mapping[str, str]
     ) -> SearchPackage:
         data: SearchPackage = {}
-        preservation_key = "Preservation Filename\n(WAVE, 96kHz/24bit)"
+        preservation_key = self.key_determine_strategy.find(
+            row, PRESERVATION_FILE
+        )
         if preservation_key in row and row[preservation_key]:
             data["preservation_file"] = f"{row[preservation_key]}.wav"
             data["preservation_file_checksum"] = (
                 f"{row[preservation_key]}.wav.md5"
             )
-        access_key = "Access Filename\n(MPEG-3)"
+        access_key = self.key_determine_strategy.find(row, ACCESS_FILE)
         if access_key in row and row[access_key]:
             data["access_file"] = f"{row[access_key]}.mp3"
             data["access_file_checksum"] = f"{row[access_key]}.mp3.md5"
-        photo_key = "Photograph Filenames\n(JPEG)"
+        photo_key = self.key_determine_strategy.find(row, PHOTO_FILE)
         if photo_key in row and row[photo_key]:
             data["photo_file"] = f"{row[photo_key].strip()}.jpg"
             data["photo_file_checksum"] = f"{row[photo_key].strip()}.jpg.md5"
