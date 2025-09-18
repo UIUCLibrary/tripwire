@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Using the Command Line &#8212; Uiucprescon.Tripwire  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Workflows" href="workflows.html" />
+    <link rel="prev" title="Tripwire documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="using-the-command-line">
+<h1>Using the Command Line<a class="headerlink" href="#using-the-command-line" title="Link to this heading">¶</a></h1>
+<section id="getting-help">
+<span id="get-hash"></span><h2>Getting Help<a class="headerlink" href="#getting-help" title="Link to this heading">¶</a></h2>
+<p>To get help at any point you can use the <cite>–help</cite> flag</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">user@WORKMACHINE123 tripwire % </span>tripwire<span class="w"> </span>--help
+<span class="go">usage: tripwire [-h] [--version] {get-hash,validate-checksums} ...</span>
+
+<span class="go">options:</span>
+<span class="go">  -h, --help            show this help message and exit</span>
+<span class="go">  --version             show program&#39;s version number and exit</span>
+
+<span class="go">subcommands:</span>
+<span class="go">  {get-hash,manifest-check,validate-checksums}</span>
+</pre></div>
+</div>
+</section>
+<section id="tripwire-commands">
+<h2>Tripwire Commands<a class="headerlink" href="#tripwire-commands" title="Link to this heading">¶</a></h2>
+<p>Below is the hierarchy of commands that are available in Tripwire.</p>
+<pre class="literal-block">tripwire
+    ├── <a class="reference internal" href="#get-hash-command"><span class="std std-ref">get-hash</span></a>
+    ├── <a class="reference internal" href="#validate-checksums"><span class="std std-ref">validate-checksums</span></a>
+    ├── <a class="reference internal" href="#manifest-check"><span class="std std-ref">manifest-check</span></a>
+    └── <a class="reference internal" href="#metadata-subcommand"><span class="std std-ref">metadata</span></a>
+        ├── <a class="reference internal" href="#metadata-show-command"><span class="std std-ref">show</span></a>
+        └── <a class="reference internal" href="#metadata-validate-command"><span class="std std-ref">validate</span></a></pre>
+<section id="get-hash-command">
+<span id="id1"></span><h3>“get-hash” Command<a class="headerlink" href="#get-hash-command" title="Link to this heading">¶</a></h3>
+<p>To get the hash value of a file, use the <cite>get-hash</cite> command. This will return the hash value of the file in the format
+<cite>&lt;filename&gt; –&gt; &lt;hash type&gt;: &lt;hash value&gt;</cite>.</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">user@WORKMACHINE123 % </span>tripwire<span class="w"> </span>get-hash<span class="w"> </span>somefile.wav
+<span class="go">somefile.wav --&gt; md5: d41d8cd98f00b204e9800998ecf8427e</span>
+</pre></div>
+</div>
+</section>
+<section id="validate-checksums-command">
+<span id="validate-checksums"></span><h3>“validate-checksums” Command<a class="headerlink" href="#validate-checksums-command" title="Link to this heading">¶</a></h3>
+<p>To validate checksums for files in a directory, use the <cite>validate-checksums</cite> command. This search for all files within
+a given path and search for a checksum file. The checksum file must be in the same directory as the files to be
+validated. If the checksum does not match the expected value, you will get notified.</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">user@WORKMACHINE123 % </span>tripwire<span class="w"> </span>validate-checksums<span class="w"> </span>/path/to/directory
+</pre></div>
+</div>
+</section>
+<section id="manifest-check-command">
+<span id="manifest-check"></span><h3>“manifest-check” Command<a class="headerlink" href="#manifest-check-command" title="Link to this heading">¶</a></h3>
+<p>Added in version 0.2.1</p>
+<p>To check a manifest file against a directory, use the <cite>manifest-check</cite> command. This will check the files in the
+manifest are present in the directory and show any files that are not supposed to be there.</p>
+<p>Usage format: tripwire manifest-check &lt;manifest_file&gt; &lt;search_path&gt;</p>
+<p>example:</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">user@WORKMACHINE123 % </span>tripwire<span class="w"> </span>manifest-check<span class="w"> </span>./manifest-film.tsv<span class="w"> </span>./sample_package/film
+<span class="go">Line: 7. Unable to locate: 2803015_film2of5_UIUCvUSC_FB_Sept1989_label.jpg</span>
+
+<span class="go">Files found that were not included in manifest:</span>
+<span class="go">* otherfile.txt</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This will not use a excel file as a manifest. You will have to export the Excel file to a tab separated file first.</p>
+</div>
+</section>
+<section id="metadata-command">
+<span id="metadata-subcommand"></span><h3>“metadata” Command<a class="headerlink" href="#metadata-command" title="Link to this heading">¶</a></h3>
+<p><em>Added in version 0.3.3</em></p>
+<p>This command contains two subcommands: <cite>show</cite> and <cite>validate</cite>.</p>
+</section>
+<section id="metadata-show-command">
+<span id="id2"></span><h3>“metadata show” command<a class="headerlink" href="#metadata-show-command" title="Link to this heading">¶</a></h3>
+<p><em>Added in version 0.3.3</em></p>
+<p>This subcommand, <cite>show</cite>, displays metadata for files using MediaInfo.</p>
+<p>example usage:</p>
+<p>This example shows how to show metadata for all .wav files in a directory regardless of depth.</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">user@WORKMACHINE123 % </span>tripwire<span class="w"> </span>metadata<span class="w"> </span>show<span class="w"> </span><span class="s2">&quot;/Volumes/G-RAID with Thunderbolt/sample data/media/UIUC_0028/**/*.wav&quot;</span>
+
+<span class="go">====================================================================================================================</span>
+<span class="go">file: /Volumes/G-RAID with Thunderbolt/sample data/media/UIUC_0028/Preservation/28_pres_01.wav</span>
+
+<span class="go">metadata:</span>
+<span class="go">{&#39;tracks&#39;: [{&#39;audio_channels_total&#39;: &#39;2&#39;,</span>
+<span class="go">             &#39;audio_codecs&#39;: &#39;PCM&#39;,</span>
+<span class="go">             &#39;audio_format_list&#39;: &#39;PCM&#39;,</span>
+<span class="go">             &#39;audio_format_withhint_list&#39;: &#39;PCM&#39;,</span>
+<span class="go">             &#39;bext_present&#39;: &#39;Yes&#39;,</span>
+<span class="go">             &#39;bext_version&#39;: &#39;1&#39;,</span>
+<span class="go">             &#39;commercial_name&#39;: &#39;Wave&#39;,</span>
+<span class="go">             &#39;complete_name&#39;: &#39;/Volumes/G-RAID with Thunderbolt/sample data/media/UIUC_0028/Preservation/28_pres_01.wav&#39;,</span>
+<span class="go">             &#39;count&#39;: &#39;351&#39;,</span>
+<span class="go">             &#39;count_of_audio_streams&#39;: &#39;1&#39;,</span>
+<span class="go">             &#39;count_of_stream_of_this_kind&#39;: &#39;1&#39;,</span>
+<span class="go">             &#39;duration&#39;: 1329152,</span>
+<span class="go">             &#39;encoded_date&#39;: &#39;2024-12-23 11:04:02&#39;,</span>
+<span class="go">             &#39;encoding_settings&#39;: &#39;A=ANALOGUE,F=96000,W=24,M=stereo,T=Player:A807-06;Brand:Studer;Model:A807MK2,SN:15118 / &#39;</span>
+<span class="go">                                  &#39;A=PCM,F=96000,W=24,M=stereo,T=Converter:MYTEK-02;Brand:Mytek;Model:8X192 ADDA,SN:01504-0906-025 / &#39;</span>
+<span class="go">                                  &#39;A=PCM,F=96000,W=24,M=stereo,T=Encoder:MIS-AUDIO-06-05;Brand:;Model:,SN:&#39;,</span>
+<span class="go">             &#39;file_creation_date&#39;: &#39;2025-07-29 17:13:15 UTC&#39;,</span>
+<span class="go">             &#39;file_creation_date__local&#39;: &#39;2025-07-29 12:13:15&#39;,</span>
+<span class="go">             &#39;file_extension&#39;: &#39;wav&#39;,</span>
+<span class="go">             &#39;file_last_modification_date&#39;: &#39;2025-07-29 22:12:00 UTC&#39;,</span>
+<span class="go">             &#39;file_last_modification_date__local&#39;: &#39;2025-07-29 17:12:00&#39;,</span>
+<span class="go">             &#39;file_name&#39;: &#39;28_pres_01&#39;,</span>
+<span class="go">             &#39;file_name_extension&#39;: &#39;28_pres_01.wav&#39;,</span>
+<span class="go">             &#39;file_size&#39;: 765592500,</span>
+<span class="go">             &#39;folder_name&#39;: &#39;/Volumes/G-RAID with Thunderbolt/sample data/media/UIUC_0028/Preservation&#39;,</span>
+<span class="go">             &#39;format&#39;: &#39;Wave&#39;,</span>
+<span class="go">             &#39;format_extensions_usually_used&#39;: &#39;act at9 wav&#39;,</span>
+<span class="go">             &#39;format_settings&#39;: &#39;PcmWaveformat&#39;,</span>
+<span class="go">             &#39;internet_media_type&#39;: &#39;audio/vnd.wave&#39;,</span>
+<span class="go">             &#39;kind_of_stream&#39;: &#39;General&#39;,</span>
+<span class="go">             &#39;other_duration&#39;: [&#39;22 min 9 s&#39;, &#39;22 min 9 s 152 ms&#39;, &#39;22 min 9 s&#39;, &#39;00:22:09.152&#39;, &#39;00:22:09.152&#39;],</span>
+<span class="go">             &#39;other_file_size&#39;: [&#39;730 MiB&#39;, &#39;730 MiB&#39;, &#39;730 MiB&#39;, &#39;730 MiB&#39;, &#39;730.1 MiB&#39;],</span>
+<span class="go">             &#39;other_format&#39;: [&#39;Wave&#39;],</span>
+<span class="go">             &#39;other_kind_of_stream&#39;: [&#39;General&#39;],</span>
+<span class="go">             &#39;other_overall_bit_rate&#39;: [&#39;4 608 kb/s&#39;],</span>
+<span class="go">             &#39;other_overall_bit_rate_mode&#39;: [&#39;Constant&#39;],</span>
+<span class="go">             &#39;other_stream_size&#39;: [&#39;948 Bytes (0%)&#39;, &#39;948 Bytes&#39;, &#39;948 Bytes&#39;, &#39;948 Bytes&#39;, &#39;948.0 Bytes&#39;, &#39;948 Bytes (0%)&#39;],</span>
+<span class="go">             &#39;overall_bit_rate&#39;: 4608006,</span>
+<span class="go">             &#39;overall_bit_rate_mode&#39;: &#39;CBR&#39;,</span>
+<span class="go">             &#39;proportion_of_this_stream&#39;: &#39;0.00000&#39;,</span>
+<span class="go">             &#39;stream_identifier&#39;: &#39;0&#39;,</span>
+<span class="go">             &#39;stream_size&#39;: 948,</span>
+<span class="go">             &#39;track_type&#39;: &#39;General&#39;},</span>
+<span class="go">            {&#39;bit_depth&#39;: 24,</span>
+<span class="go">             &#39;bit_rate&#39;: 4608000,</span>
+<span class="go">             &#39;bit_rate_mode&#39;: &#39;CBR&#39;,</span>
+<span class="go">             &#39;channel_s&#39;: 2,</span>
+<span class="go">             &#39;codec_id&#39;: &#39;1&#39;,</span>
+<span class="go">             &#39;codec_id_url&#39;: &#39;http://www.microsoft.com/windows/&#39;,</span>
+<span class="go">             &#39;commercial_name&#39;: &#39;PCM&#39;,</span>
+<span class="go">             &#39;count&#39;: &#39;285&#39;,</span>
+<span class="go">             &#39;count_of_stream_of_this_kind&#39;: &#39;1&#39;,</span>
+<span class="go">             &#39;delay&#39;: &#39;0.000000&#39;,</span>
+<span class="go">             &#39;delay__origin&#39;: &#39;Container (bext)&#39;,</span>
+<span class="go">             &#39;duration&#39;: 1329152,</span>
+<span class="go">             &#39;format&#39;: &#39;PCM&#39;,</span>
+<span class="go">             &#39;format_settings&#39;: &#39;Little / Signed&#39;,</span>
+<span class="go">             &#39;format_settings__endianness&#39;: &#39;Little&#39;,</span>
+<span class="go">             &#39;format_settings__sign&#39;: &#39;Signed&#39;,</span>
+<span class="go">             &#39;kind_of_stream&#39;: &#39;Audio&#39;,</span>
+<span class="go">             &#39;other_bit_depth&#39;: [&#39;24 bits&#39;],</span>
+<span class="go">             &#39;other_bit_rate&#39;: [&#39;4 608 kb/s&#39;],</span>
+<span class="go">             &#39;other_bit_rate_mode&#39;: [&#39;Constant&#39;],</span>
+<span class="go">             &#39;other_channel_s&#39;: [&#39;2 channels&#39;],</span>
+<span class="go">             &#39;other_delay&#39;: [&#39;00:00:00.000&#39;, &#39;00:00:00.000&#39;],</span>
+<span class="go">             &#39;other_delay__origin&#39;: [&#39;Container (bext)&#39;],</span>
+<span class="go">             &#39;other_duration&#39;: [&#39;22 min 9 s&#39;, &#39;22 min 9 s 152 ms&#39;, &#39;22 min 9 s&#39;, &#39;00:22:09.152&#39;, &#39;00:22:09.152&#39;],</span>
+<span class="go">             &#39;other_format&#39;: [&#39;PCM&#39;],</span>
+<span class="go">             &#39;other_kind_of_stream&#39;: [&#39;Audio&#39;],</span>
+<span class="go">             &#39;other_sampling_rate&#39;: [&#39;96.0 kHz&#39;],</span>
+<span class="go">             &#39;other_stream_size&#39;: [&#39;730 MiB (100%)&#39;, &#39;730 MiB&#39;, &#39;730 MiB&#39;, &#39;730 MiB&#39;, &#39;730.1 MiB&#39;, &#39;730 MiB (100%)&#39;],</span>
+<span class="go">             &#39;proportion_of_this_stream&#39;: &#39;1.00000&#39;,</span>
+<span class="go">             &#39;samples_count&#39;: &#39;127598592&#39;,</span>
+<span class="go">             &#39;sampling_rate&#39;: 96000,</span>
+<span class="go">             &#39;stream_identifier&#39;: &#39;0&#39;,</span>
+<span class="go">             &#39;stream_size&#39;: 765591552,</span>
+<span class="go">             &#39;track_type&#39;: &#39;Audio&#39;}]}</span>
+</pre></div>
+</div>
+</section>
+<section id="metadata-validate-command">
+<span id="id3"></span><h3>“metadata validate” Command<a class="headerlink" href="#metadata-validate-command" title="Link to this heading">¶</a></h3>
+<p><em>Added in version 0.3.3</em></p>
+<p>The subcommand, <cite>validate</cite>, validates metadata of files against a policy file. The policy file is an XML file that defines the
+rules for validation. The rules can check for various properties of the files such as bit depth, sample rate,
+resolution, etc. This xml file can be created using the
+<a class="reference external" href="https://mediaarea.net/MediaConch">MediaConch GUI application by MediaArea</a> and exported as a policy file.</p>
+<p>example usage:</p>
+<p>This example shows how to validate all .wav files in a directory regardless of depth and validate them against a
+policy file that checks for 24 bit depth wav files.</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">user@WORKMACHINE123 % </span>tripwire<span class="w"> </span>metadata<span class="w"> </span>validate<span class="w"> </span><span class="s2">&quot;./preservation waves are 24-bit.xml&quot;</span><span class="w"> </span><span class="s2">&quot;/Volumes/G-RAID with Thunderbolt/sample data/media/UIUC_0028/**/*.wav&quot;</span>
+<span class="go">validating /Volumes/G-RAID with Thunderbolt/sample data/media/UIUC_0028/Preservation/28_pres_01.wav</span>
+<span class="go">validating /Volumes/G-RAID with Thunderbolt/sample data/media/UIUC_0028/Preservation/28_pres_01.wav: Fail</span>
+<span class="go">==================</span>
+<span class="go">Validation Results</span>
+<span class="go">==================</span>
+
+<span class="go">File: /Volumes/G-RAID with Thunderbolt/sample data/media/UIUC_0028/Preservation/28_pres_01.wav</span>
+<span class="go">Issues:</span>
+<span class="go">   Rule &quot;24 bit&quot; failed.  Expected: 24, Got: 25</span>
+<span class="go">failed metadata validation</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/full_mark_horz_bw.gif" alt="Logo of Uiucprescon.Tripwire"/>
+            </a></p>
+<h1 class="logo"><a href="index.html">Uiucprescon.Tripwire</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Using the Command Line</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tripwire-commands">Tripwire Commands</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Tripwire documentation</a></li>
+      <li>Next: <a href="workflows.html" title="next chapter">Workflows</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, University Library at The University of Illinois at Urbana Champaign: Preservation Services.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/cli.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

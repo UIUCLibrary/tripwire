@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Workflows &#8212; Uiucprescon.Tripwire  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Development" href="development.html" />
+    <link rel="prev" title="Using the Command Line" href="cli.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="workflows">
+<h1>Workflows<a class="headerlink" href="#workflows" title="Link to this heading">¶</a></h1>
+<section id="check-files-in-manifest">
+<h2>Check Files in Manifest<a class="headerlink" href="#check-files-in-manifest" title="Link to this heading">¶</a></h2>
+<p>To verify all the files referenced in the manifest file are present, the
+command <a class="reference internal" href="cli.html#manifest-check"><span class="std std-ref">manifest-check</span></a> can be used.</p>
+<p>In order to do this, the manifest must be a single table tsv file encoded in
+UTF-8. Excel files will NOT work on their own. It must be first converted.</p>
+<p>Once converted, the command <cite>tripwire manifest-check</cite> followed by the path
+to the .tsv file and the path to where the files are located, will initiate
+the check.</p>
+<p>The order of operations:</p>
+<ol class="arabic simple">
+<li><p>convert excel file into batches of .tsv files. One format per .tsv file</p></li>
+<li><p>Use <cite>tripwire manifest-check</cite> command</p></li>
+</ol>
+<section id="convert-excel-to-tsv-file">
+<h3>Convert Excel to .tsv file<a class="headerlink" href="#convert-excel-to-tsv-file" title="Link to this heading">¶</a></h3>
+<p>This has become increasing more challanging to do with more recent version of
+Microsoft Excel. Here is how I was able to get it.</p>
+<ol class="arabic simple">
+<li><p>Open the manifest Excel document.</p></li>
+<li><p>Copy the data for a single format into a new Excel document and using
+“Save As”, save it using the File Format “UTF-16 Unicode Text”.</p></li>
+<li><p>Open that file in Microsoft Visual Studio Code (aka VS Code). <strong>This is
+not the same as Microsoft Visual Studio</strong>.</p></li>
+<li><p>In the bottom right hand corner of VS Code, click the text that says
+“UTF-16”. A text box will pop up, and select “Save With Encoding”.</p></li>
+<li><p>Select UTF-8.</p></li>
+<li><p>Optionally change the extension of the file from .txt to .tsv.</p></li>
+</ol>
+<p>You should now have a tsv that you can work with.</p>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/full_mark_horz_bw.gif" alt="Logo of Uiucprescon.Tripwire"/>
+            </a></p>
+<h1 class="logo"><a href="index.html">Uiucprescon.Tripwire</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Using the Command Line</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Workflows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#check-files-in-manifest">Check Files in Manifest</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="cli.html" title="previous chapter">Using the Command Line</a></li>
+      <li>Next: <a href="development.html" title="next chapter">Development</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, University Library at The University of Illinois at Urbana Champaign: Preservation Services.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/workflows.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
