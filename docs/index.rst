@@ -11,4 +11,5 @@ Tripwire documentation
    :caption: Contents:
 
    cli
+   workflows
    development
