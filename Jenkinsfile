@@ -1,3 +1,4 @@
+import groovy.json.JsonOutput
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 library identifier: 'JenkinsPythonHelperLibrary@2024.12.0', retriever: modernSCM(
   [$class: 'GitSCMSource',
@@ -110,6 +111,8 @@ pipeline {
         booleanParam(name: 'PACKAGE_MAC_OS_STANDALONE_ARM64', defaultValue: false, description: 'Create a standalone version for MacOS ARM64 (Intel) machines')
         booleanParam(name: 'DEPLOY_PYPI', defaultValue: false, description: 'Deploy to pypi')
         booleanParam(name: 'DEPLOY_STANDALONE_PACKAGERS', defaultValue: false, description: 'Deploy standalone packages')
+        booleanParam(name: 'CREATE_GITHUB_RELEASE', defaultValue: false, description: 'Deploy to Github Release. Requires the current commit to be tagged. Note: This is experimental')
+
     }
     stages {
         stage('Building and Testing'){
@@ -813,6 +816,88 @@ pipeline {
                                         [pattern: 'dist/', type: 'INCLUDE']
                                     ]
                             )
+                        }
+                    }
+                }
+                stage('GitHub Release'){
+                    agent any
+                    when{
+                        beforeInput true
+                        beforeAgent true
+                        beforeOptions true
+                        allOf{
+                          equals expected: true, actual: params.BUILD_PACKAGES
+                          equals expected: true, actual: params.CREATE_GITHUB_RELEASE
+                          tag '*'
+                        }
+                    }
+                    input {
+                        message 'Create GitHub Release'
+                        id 'GITHUB_DEPLOYMENT'
+                        parameters {
+                            credentials(
+                                credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl',
+                                description: 'GitHub credential Id',
+                                name: 'GITHUB_CREDENTIALS_ID',
+                                required: true
+                            )
+                        }
+                    }
+                    environment{
+                        GITHUB_REPO='UIUCLibrary/uiucprescon_build'
+                    }
+                    options{
+                        lock("${env.JOB_NAME}")
+                    }
+                    steps{
+                        script {
+                            def projectMetadata = readTOML( file: 'pyproject.toml')['project']
+                            withCredentials([string(credentialsId: GITHUB_CREDENTIALS_ID, variable: 'GITHUB_TOKEN')]) {
+                                def requestBody = JsonOutput.toJson([
+                                    tag_name: env.BRANCH_NAME,
+                                    name: "Version ${projectMetadata.version}",
+                                    generate_release_notes: false,
+                                    draft: false,
+                                    prerelease: false
+                                ])
+                                def createReleaseResponse = httpRequest(
+                                    httpMode: 'POST',
+                                    contentType: 'APPLICATION_JSON',
+                                    url: "https://api.github.com/repos/UIUCLibrary/tripwire/releases",
+                                    customHeaders: [
+                                        [name: 'Authorization', value: "token ${GITHUB_TOKEN}"]
+                                    ],
+                                    requestBody: requestBody,
+                                    validResponseCodes: '201' // Expect a 201 Created status code
+                                    )
+                                unstash 'PYTHON_PACKAGES'
+                                def releaseData = readJSON text: createReleaseResponse.content
+                                findFiles(glob: 'dist/*').each{
+                                    def uploadResponse = httpRequest(
+                                        url: "${releaseData.upload_url.replace('{?name,label}', '')}?name=${it.name}",
+                                        httpMode: 'POST',
+                                        uploadFile: it.path,
+                                        customHeaders: [[name: 'Authorization', value: "token ${GITHUB_TOKEN}"]],
+                                        wrapAsMultipart: false
+                                    )
+                                    if (uploadResponse.status >= 200 && uploadResponse.status < 300) {
+                                        echo "File uploaded successfully to GitHub release."
+                                    } else {
+                                        error "Failed to upload file: ${uploadResponse.status} - ${uploadResponse.content}"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    post{
+                        cleanup{
+                            script{
+                                if(isUnix()){
+                                    sh "${tool(name: 'Default', type: 'git')} clean -dfx"
+                                } else {
+                                    bat "${tool(name: 'Default', type: 'git')} clean -dfx"
+                                }
+                            }
                         }
                     }
                 }
