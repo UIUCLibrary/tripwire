@@ -211,7 +211,7 @@ class AudioManifest(AbsManifest):
         unique_keys = ["Cassette Title", "Track Speed (ips)"]
         try:
             manifest = tripwire_files.TSVManifest(fp)
-            for key in set(k for k in manifest[0].row_data):
+            for key in set(manifest[0].row_data):
                 if key.strip() in unique_keys:
                     return True
             return False
