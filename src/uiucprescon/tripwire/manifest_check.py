@@ -208,7 +208,7 @@ class AudioManifest(AbsManifest):
     @staticmethod
     @tripwire_files.remembered_file_pointer
     def is_it_an_audio_manifest(fp: TextIO) -> bool:
-        unique_keys = ["Cassette Title", "Reel No."]
+        unique_keys = ["Cassette Title", "Track Speed (ips)"]
         try:
             manifest = tripwire_files.TSVManifest(fp)
             for key in set(k for k in manifest[0].row_data):
