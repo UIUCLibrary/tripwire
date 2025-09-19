@@ -4,8 +4,20 @@ import hashlib
 import io
 import os
 import pathlib
-from typing import BinaryIO, Optional, Callable, Any, List, Iterable, Protocol
+from typing import (
+    Any,
+    BinaryIO,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Protocol,
+    TextIO,
+)
+from uiucprescon.tripwire.files import remembered_file_pointer
 import logging
+
 from tqdm import tqdm
 
 __all__ = ["validate_directory_checksums_command"]
@@ -184,9 +196,44 @@ def create_checksum_validation_report(
     """
 
 
+def read_hash_and_file_format(fp: TextIO) -> str:
+    starting = fp.tell()
+    try:
+        fp.seek(0)
+        results = fp.read()
+        return results.split(" ")[0]
+    finally:
+        fp.seek(starting)
+
+
+def read_hash_only_format(fp: TextIO) -> str:
+    starting = fp.tell()
+    try:
+        fp.seek(0)
+        return fp.read().strip()
+    finally:
+        fp.seek(starting)
+
+
+checksum_reading_strategies: Dict[str, Callable[[TextIO], str]] = {
+    "hash_and_file": read_hash_and_file_format,
+    "only_hash_value": read_hash_only_format,
+}
+
+
+@remembered_file_pointer
+def get_checksum_file_reading_strategy(fp: TextIO) -> Callable[[TextIO], str]:
+    fp.seek(0)
+    data = fp.read()
+    results = data.split()
+    if len(results) == 1:
+        return checksum_reading_strategies["only_hash_value"]
+    return checksum_reading_strategies["hash_and_file"]
+
+
 def read_checksum_file(file_path: pathlib.Path) -> str:
     with file_path.open("r") as f:
-        return f.read().strip()
+        return get_checksum_file_reading_strategy(fp=f)(f)
 
 
 def validate_directory_checksums_command(

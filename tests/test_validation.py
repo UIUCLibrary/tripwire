@@ -145,3 +145,21 @@ def test_validate_directory_checksums_command_failed(caplog, comparison_results,
     assert read_checksums_strategy.called
     assert compare_checksum_to_target_strategy.called
     assert expected_message_in_log in caplog.text
+
+@pytest.mark.parametrize(
+    "file_contents, expect_hash",
+    [
+        (
+            'd41d8cd98f00b204e9800998ecf8427e *3503082_series17_box33_folder1_tape8_A_acc.mp3',
+            'd41d8cd98f00b204e9800998ecf8427e'
+        ),
+        (
+            'd41d8cd98f00b204e9800998ecf8427e',
+            'd41d8cd98f00b204e9800998ecf8427e'
+        )
+    ]
+)
+def test_get_checksum_file_reading_strategy(file_contents, expect_hash):
+    text = io.StringIO()
+    text.write(file_contents)
+    assert validation.get_checksum_file_reading_strategy(fp=text)(fp=text)==expect_hash
