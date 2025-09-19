@@ -1,3 +1,14 @@
+## v0.3.4 (2025-09-19)
+
+### Feat
+
+- validate-checksums accept different types of checksum files
+- expand possible fields names for files in tsv
+
+### Fix
+
+- Track Speed (ips) is key is used to id audio manifests
+
 ## v0.3.3 (2025-09-10)
 
 ### Feat

@@ -160,3 +160,4 @@ cython_debug/
 
 # system files
 .DS_Store
+sample_data/
