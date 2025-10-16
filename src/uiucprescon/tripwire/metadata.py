@@ -220,7 +220,7 @@ class MediaConchValidator(AbsValidateStrategy):
     ) -> Iterable[str]:
         for policy in policies:
             if policy["outcome"] != "pass":
-                for rule in policy["rules"]:
+                for rule in policy.get("rules", []):
                     if rule["outcome"] != "pass":
                         yield self.issue_formatter(rule)
 

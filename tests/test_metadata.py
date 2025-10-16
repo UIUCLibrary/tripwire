@@ -215,6 +215,23 @@ class TestMediaConchValidator:
                 }),
                 "ERROR",
             ),
+            (
+                json.dumps({
+                    "MediaConch": {
+                        "media": [
+                            {
+                                "ref": "dummy.mov",
+                                "policies": [
+                                    {
+                                        "outcome": "pass",
+                                    }
+                                ],
+                            }
+                        ]
+                    }
+                }),
+                "INFO",
+            ),
         ],
     )
     def test_validate_loging_valid(
