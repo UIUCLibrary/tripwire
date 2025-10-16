@@ -14,6 +14,7 @@ import io
 import logging
 import shutil
 import glob as glob_module
+import os.path
 import pprint
 from typing import (
     Dict,
@@ -237,6 +238,8 @@ class MediaConchValidator(AbsValidateStrategy):
 
         for file in self.iglob(glob, recursive=True):
             print(f"validating {file}")
+            if os.path.isdir(file):
+                continue
             result: MediaconchReportData = json.loads(
                 mc.get_report(mc.add_file(str(file)))
             )
