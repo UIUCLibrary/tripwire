@@ -1,3 +1,14 @@
+## v0.3.5 (2025-10-20)
+
+### Feat
+
+- tripwire metadata validate command can cancel job with control+c
+
+### Fix
+
+- Issue with tripwrite trying to validate folders instead of files
+- metadata validate does no longer fails if policy file has no rules
+
 ## v0.3.4 (2025-09-19)
 
 ### Feat
