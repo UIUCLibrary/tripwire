@@ -31,9 +31,7 @@ def test_generate_metadata_report():
 
 def test_get_media_metadata(monkeypatch):
     parse = Mock(spec_set=metadata_module.pymediainfo.MediaInfo.parse)
-    monkeypatch.setattr(
-        metadata_module.pymediainfo.MediaInfo, "parse", parse
-    )
+    monkeypatch.setattr(metadata_module.pymediainfo.MediaInfo, "parse", parse)
     metadata_module.get_media_metadata("test_file.mp3")
     parse.assert_called_with("test_file.mp3")
 
@@ -84,15 +82,17 @@ def test_locate_files_uses_default_filters(monkeypatch):
 
 def test_get_terminal_width_falls_back():
     with patch(
-        'uiucprescon.tripwire.metadata.shutil.get_terminal_size'
+        "uiucprescon.tripwire.metadata.shutil.get_terminal_size"
     ) as mock_get_terminal_size:
         mock_get_terminal_size.side_effect = OSError
-        assert metadata_module.get_terminal_width() == 80  # Default fallback value
+        assert (
+            metadata_module.get_terminal_width() == 80
+        )  # Default fallback value
 
 
 def test_get_terminal_width_uses_shutil(monkeypatch):
     with patch(
-            'uiucprescon.tripwire.metadata.shutil.get_terminal_size'
+        "uiucprescon.tripwire.metadata.shutil.get_terminal_size"
     ) as mock_get_terminal_size:
         mock_get_terminal_size.return_value = Mock(columns=100)
         assert (
@@ -246,7 +246,7 @@ class TestMediaConchValidator:
             get_report=Mock(name="get_report", return_value=json_data),
         )
         validator.validate("*.mov")
-        assert len(caplog.records) == 1
+        assert "Validating dummy.mov" in str(caplog.records[0])
         assert caplog.records[0].levelname == expected_levelname
 
     def test_validate_raises_without_policy_file(self):
@@ -266,6 +266,14 @@ class TestMediaConchValidator:
             ValueError, match="Policy file must be valid policy file."
         ):
             validator.validate("*.mov")
+
+    def test_cancel_with_control_c(self, caplog):
+        validator = metadata_module.MediaConchValidator()
+        validator.validate_policy_file = lambda _: True
+        validator.set_policy_file(pathlib.Path("test_file.xml"))
+        validator.iglob = Mock(side_effect=KeyboardInterrupt)
+        validator.validate("*.mov")
+        assert "Validation interrupted by user" in caplog.text
 
 
 class TestValidationReportBuilder:
