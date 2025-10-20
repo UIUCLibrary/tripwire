@@ -14,6 +14,7 @@ import io
 import logging
 import shutil
 import glob as glob_module
+import os.path
 import pprint
 from typing import (
     Dict,
@@ -220,7 +221,7 @@ class MediaConchValidator(AbsValidateStrategy):
     ) -> Iterable[str]:
         for policy in policies:
             if policy["outcome"] != "pass":
-                for rule in policy["rules"]:
+                for rule in policy.get("rules", []):
                     if rule["outcome"] != "pass":
                         yield self.issue_formatter(rule)
 
@@ -234,29 +235,37 @@ class MediaConchValidator(AbsValidateStrategy):
         mc.add_policy(str(self.policy_file))
 
         files_with_issues = set()
-
-        for file in self.iglob(glob, recursive=True):
-            print(f"validating {file}")
-            result: MediaconchReportData = json.loads(
-                mc.get_report(mc.add_file(str(file)))
-            )
-            file_is_valid = True
-            for item in self._parse_media_conch_report(result):
-                assert item["ref"] == str(file), (
-                    f"Expected {item['ref']} to be {file}"
+        files_inspected = 0
+        try:
+            for file in self.iglob(glob, recursive=True):
+                if os.path.isdir(file):
+                    continue
+                print(f"Validating {file}")
+                result: MediaconchReportData = json.loads(
+                    mc.get_report(mc.add_file(str(file)))
                 )
-                failing_rules = set(self._iter_failing_rules(item["policies"]))
-                if failing_rules:
-                    file_is_valid = False
-                files_with_issues.add(
-                    FileIssues(file=file, issues=failing_rules)
-                )
+                files_inspected += 1
+                file_is_valid = True
+                for item in self._parse_media_conch_report(result):
+                    assert item["ref"] == str(file), (
+                        f"Expected {item['ref']} to be {file}"
+                    )
+                    failing_rules = set(
+                        self._iter_failing_rules(item["policies"])
+                    )
+                    if failing_rules:
+                        file_is_valid = False
+                    files_with_issues.add(
+                        FileIssues(file=file, issues=failing_rules)
+                    )
 
-            if not file_is_valid:
-                logger.error(f"validating {file}: Fail")
-            else:
-                logger.info(f"validating {file}: Pass")
-
+                if not file_is_valid:
+                    logger.error(f"Validating {file}: Fail")
+                else:
+                    logger.info(f"Validating {file}: Pass")
+        except KeyboardInterrupt:
+            logger.info("Validation interrupted by user.")
+        logger.info(f"Inspected {files_inspected} files.")
         return ValidationResult(
             valid=len(files_with_issues) > 0,
             files_with_issues=files_with_issues,
