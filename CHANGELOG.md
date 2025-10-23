@@ -1,3 +1,9 @@
+## v0.3.6 (2025-10-23)
+
+### Fix
+
+- exiting no longer throws NameError exception
+
 ## v0.3.5 (2025-10-20)
 
 ### Feat
