@@ -64,7 +64,7 @@ def manifest_check_command(
     except InvalidFileFormat as e:
         logger.error(str(e))
         print_usage_function(sys.stderr)
-        exit(1)
+        sys.exit(1)
 
 
 def get_arg_parser() -> Tuple[
@@ -149,7 +149,7 @@ def metadata_validate_command(args: argparse.Namespace) -> None:
         args.glob, policy_xml_file=args.policy_file
     ):
         print("failed metadata validation")
-        exit(1)
+        sys.exit(1)
 
     print("passed metadata validation")
 
