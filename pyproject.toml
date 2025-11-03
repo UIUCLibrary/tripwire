@@ -28,6 +28,7 @@ tripwire = "uiucprescon.tripwire.main:main"
 [dependency-groups]
 test = ["pytest>7", "coverage"]
 docs = ["sphinx"]
+audit-dependencies = ['uv-secure']
 dev = [
     "lxml",
     "mypy",
@@ -36,6 +37,7 @@ dev = [
     "ruff",
     "tox",
     "types-tqdm",
+    {include-group = "audit-dependencies"},
     {include-group = "docs"},
     {include-group = "test"},
     ]

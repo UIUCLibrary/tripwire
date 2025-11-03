@@ -189,9 +189,12 @@ pipeline {
                                     }
                                 }
                                 stage('Audit uv.lock File'){
+                                    options{
+                                        timeout(5)
+                                    }
                                     steps{
                                         catchError(buildResult: 'SUCCESS', message: 'uv-secure found issues', stageResult: 'UNSTABLE') {
-                                            sh './venv/bin/uvx uv-secure --cache-path=/tmp/cache/uv-secure uv.lock'
+                                            sh './venv/bin/uv run --only-group audit-dependencies --isolated uv-secure --disable-cache uv.lock'
                                         }
                                     }
                                 }
