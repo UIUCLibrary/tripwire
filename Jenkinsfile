@@ -685,7 +685,9 @@ pipeline {
                                         }
                                     }
                                     steps{
-                                        bat(script: 'contrib/create_windows_distrib.bat')
+                                        timeout(5){
+                                            bat(script: 'contrib/create_windows_distrib.bat')
+                                        }
                                     }
                                     post{
                                         success{
