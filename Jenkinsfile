@@ -379,11 +379,11 @@ pipeline {
                                                venv/bin/uv build --build-constraints=requirements-dev.txt
                                             '''
                                 )
+                                stash includes: 'dist/*.whl,dist/*.tar.gz,dist/*.zip', name: 'PYTHON_PACKAGES'
                             }
                             post{
                                 always{
                                     archiveArtifacts artifacts: 'dist/*.whl,dist/*.tar.gz,dist/*.zip', fingerprint: true
-                                    stash includes: 'dist/*.whl,dist/*.tar.gz,dist/*.zip', name: 'PYTHON_PACKAGES'
                                 }
                                 cleanup{
                                     cleanWs(patterns: [
@@ -557,11 +557,11 @@ pipeline {
                                     }
                                     steps{
                                         sh './contrib/create_mac_distrib.sh'
+                                        stash includes: 'dist/*.tar.gz', name: 'APPLE_APPLICATION_X86_64'
                                     }
                                     post{
                                         success{
                                             archiveArtifacts artifacts: 'dist/*.tar.gz', fingerprint: true
-                                            stash includes: 'dist/*.tar.gz', name: 'APPLE_APPLICATION_X86_64'
                                         }
                                         cleanup{
                                             sh "${tool(name: 'Default', type: 'git')} clean -dfx"
@@ -618,11 +618,11 @@ pipeline {
                                     }
                                     steps{
                                         sh './contrib/create_mac_distrib.sh'
+                                        stash includes: 'dist/*.tar.gz', name: 'APPLE_APPLICATION_ARM64'
                                     }
                                     post{
                                         success{
                                             archiveArtifacts artifacts: 'dist/*.tar.gz', fingerprint: true
-                                            stash includes: 'dist/*.tar.gz', name: 'APPLE_APPLICATION_ARM64'
                                         }
                                         cleanup{
                                             sh "${tool(name: 'Default', type: 'git')} clean -dfx"
@@ -688,11 +688,11 @@ pipeline {
                                         timeout(5){
                                             bat(script: 'contrib/create_windows_distrib.bat')
                                         }
+                                        stash includes: 'dist/*.zip', name: 'WINDOWS_APPLICATION_X86_64'
                                     }
                                     post{
                                         success{
                                             archiveArtifacts artifacts: 'dist/*.zip', fingerprint: true
-                                            stash includes: 'dist/*.zip', name: 'WINDOWS_APPLICATION_X86_64'
                                         }
                                         cleanup{
                                             cleanWs(
