@@ -43,6 +43,7 @@ dev = [
     ]
 deploy = ["twine"]
 ci = ["pysonar", {include-group = "dev"}]
+standalone-packaging = ['PyInstaller', 'cmake']
 
 [build-system]
 requires = ["setuptools>=77.0.0"]

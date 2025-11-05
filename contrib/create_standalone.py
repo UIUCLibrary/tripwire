@@ -4,13 +4,6 @@ The resulting application does not require the Python Runtime preinstalled
 on the user's machine.
 """
 
-# /// script
-# requires-python = ">=3.11"
-# dependencies = [
-#   'PyInstaller', 'cmake'
-#   ]
-# ///
-
 import abc
 import argparse
 import functools
