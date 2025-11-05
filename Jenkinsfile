@@ -686,7 +686,7 @@ pipeline {
                                     }
                                     steps{
                                         timeout(5){
-                                            bat(script: 'contrib/create_windows_distrib.bat')
+                                            bat(script: 'powershell contrib/create_windows_distrib.ps1')
                                         }
                                         stash includes: 'dist/*.zip', name: 'WINDOWS_APPLICATION_X86_64'
                                     }
