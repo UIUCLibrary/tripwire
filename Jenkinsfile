@@ -831,7 +831,6 @@ pipeline {
                         beforeAgent true
                         beforeOptions true
                         allOf{
-                          equals expected: true, actual: params.BUILD_PACKAGES
                           equals expected: true, actual: params.CREATE_GITHUB_RELEASE
                           tag '*'
                         }
@@ -875,20 +874,22 @@ pipeline {
                                     requestBody: requestBody,
                                     validResponseCodes: '201' // Expect a 201 Created status code
                                     )
-                                unstash 'PYTHON_PACKAGES'
-                                def releaseData = readJSON text: createReleaseResponse.content
-                                findFiles(glob: 'dist/*').each{
-                                    def uploadResponse = httpRequest(
-                                        url: "${releaseData.upload_url.replace('{?name,label}', '')}?name=${it.name}",
-                                        httpMode: 'POST',
-                                        uploadFile: it.path,
-                                        customHeaders: [[name: 'Authorization', value: "token ${GITHUB_TOKEN}"]],
-                                        wrapAsMultipart: false
-                                    )
-                                    if (uploadResponse.status >= 200 && uploadResponse.status < 300) {
-                                        echo "File uploaded successfully to GitHub release."
-                                    } else {
-                                        error "Failed to upload file: ${uploadResponse.status} - ${uploadResponse.content}"
+                                if (params.BUILD_PACKAGES){
+                                    unstash 'PYTHON_PACKAGES'
+                                    def releaseData = readJSON text: createReleaseResponse.content
+                                    findFiles(glob: 'dist/*').each{
+                                        def uploadResponse = httpRequest(
+                                            url: "${releaseData.upload_url.replace('{?name,label}', '')}?name=${it.name}",
+                                            httpMode: 'POST',
+                                            uploadFile: it.path,
+                                            customHeaders: [[name: 'Authorization', value: "token ${GITHUB_TOKEN}"]],
+                                            wrapAsMultipart: false
+                                        )
+                                        if (uploadResponse.status >= 200 && uploadResponse.status < 300) {
+                                            echo "File uploaded successfully to GitHub release."
+                                        } else {
+                                            error "Failed to upload file: ${uploadResponse.status} - ${uploadResponse.content}"
+                                        }
                                     }
                                 }
                             }
