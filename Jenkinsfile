@@ -455,7 +455,7 @@ pipeline {
                                                                 .inside(
                                                                     isUnix() ?
                                                                         '--mount source=tripwire_cache,target=/tmp' :
-                                                                        "--mount type=volume,source=uv_python_install_dir,target=C:\\Users\\ContainerUser\\Documents\\cache\\uvpython \
+                                                                        "--mount type=volume,source=uv_python_cache_dir,target=C:\\Users\\ContainerUser\\Documents\\cache\\uvpython \
                                                                         --mount type=volume,source=pipcache,target=C:\\Users\\ContainerUser\\Documents\\cache\\pipcache \
                                                                         --mount type=volume,source=uv_cache_dir,target=C:\\Users\\ContainerUser\\Documents\\cache\\uvcache"
                                                                 ){
@@ -480,7 +480,7 @@ pipeline {
                                                                     withEnv([
                                                                         'PIP_CACHE_DIR=C:\\Users\\ContainerUser\\Documents\\cache\\pipcache',
                                                                         'UV_TOOL_DIR=C:\\Users\\ContainerUser\\Documents\\cache\\uvtools',
-                                                                        'UV_PYTHON_INSTALL_DIR=C:\\Users\\ContainerUser\\Documents\\cache\\uvpython',
+                                                                        'UV_PYTHON_CACHE_DIR=C:\\Users\\ContainerUser\\Documents\\cache\\uvpython',
                                                                         'UV_CACHE_DIR=C:\\Users\\ContainerUser\\Documents\\cache\\uvcache',
                                                                     ]){
                                                                         powershell(
@@ -669,7 +669,7 @@ pipeline {
                         }
                         stage('Windows Application'){
                             environment{
-                                UV_PYTHON_INSTALL_DIR='C:\\Users\\ContainerUser\\Documents\\uvpython'
+                                UV_PYTHON_CACHE_DIR='C:\\Users\\ContainerUser\\Documents\\uvpython'
                             }
                             when{
                                 equals expected: true, actual: params.PACKAGE_STANDALONE_WINDOWS_INSTALLER
