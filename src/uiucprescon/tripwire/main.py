@@ -9,7 +9,13 @@ import pathlib
 import sys
 from typing import Callable, Any, Dict, Tuple, Optional
 
-from uiucprescon.tripwire import validation, utils, manifest_check, metadata
+from uiucprescon.tripwire import (
+    validation,
+    utils,
+    manifest_check,
+    metadata,
+    introspection,
+)
 from uiucprescon.tripwire.exceptions import InvalidFileFormat
 import argcomplete
 
@@ -135,6 +141,9 @@ def get_arg_parser() -> Tuple[
         help="increase output verbosity",
         dest="verbosity",
     )
+    sub_commands.add_parser(
+        "info", help="get information about current version of tripwire"
+    )
     return (
         parser,
         {
@@ -217,6 +226,11 @@ def metadata_command(args: argparse.Namespace, subcommand: str) -> None:
             raise ValueError(f"Unknown metadata subcommand: {subcommand}")
 
 
+def show_info_command() -> None:
+    """Show info about application."""
+    print(introspection.get_application_info())
+
+
 def main() -> None:
     """Main entry point for the Tripwire command line interface."""
     parser, print_help_commands = get_arg_parser()
@@ -234,6 +248,8 @@ def main() -> None:
             )
         case "metadata":
             metadata_command(args, args.metadata_command)
+        case "info":
+            show_info_command()
 
 
 if __name__ == "__main__":
