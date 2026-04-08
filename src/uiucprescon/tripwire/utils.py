@@ -1,9 +1,8 @@
 """General utility library functions."""
 
-import importlib
 import pathlib
 from typing import Optional, Callable, Iterable, List, cast
-from importlib.metadata import version
+from importlib.metadata import version, PackageNotFoundError
 import tomllib
 
 __all__ = ["get_version"]
@@ -18,9 +17,11 @@ class MissingVersionInformation(Exception):
 
 
 def get_package_version() -> str:
+    if __package__ is None:
+        raise PackageNotFoundError("unable to determine package name")
     try:
         return version(__package__)
-    except importlib.metadata.PackageNotFoundError as error:
+    except PackageNotFoundError as error:
         raise InvalidVersionStrategy(
             "package metadata not installed"
         ) from error
