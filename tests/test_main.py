@@ -1,6 +1,8 @@
+from unittest.mock import Mock
+
 import pytest
 from uiucprescon.tripwire import main
-
+import argparse
 
 @pytest.mark.parametrize(
     "cli_args,expected_subcommand", [(["get-hash", "value"], "get-hash")]
@@ -35,3 +37,19 @@ def test_calling_version_flag_exits_with_zero():
 def test_get_hash_file_args(cli_args, expected_files):
     args = main.get_arg_parser()[0].parse_args(cli_args)
     assert [str(f) for f in args.files] == expected_files
+
+def test_metadata_validate_command():
+    args = argparse.Namespace(
+        verbosity=0,
+        glob="/Users/dummy/Movies/*.mov",
+        policy_file="/Users/dummy/policy.xml"
+    )
+    mock_validate_strategy = Mock()
+    main.metadata_validate_command(
+        args,
+        validate_metadata_strategy=mock_validate_strategy,
+    )
+    mock_validate_strategy.assert_called_once_with(
+        args.glob,
+        policy_xml_file=args.policy_file
+    )
