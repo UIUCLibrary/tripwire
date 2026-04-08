@@ -126,7 +126,7 @@ pipeline {
                     }
                     agent {
                         docker{
-                            image 'python'
+                            image 'ghcr.io/astral-sh/uv:debian'
                             label 'docker && linux && x86_64'
                             args '--mount source=tripwire_cache,target=/tmp --tmpfs /.config:exec --tmpfs /.tree-sitter:exec'
                         }
@@ -137,22 +137,14 @@ pipeline {
                             steps{
                                 sh(
                                     label: 'Create virtual environment with packaging in development mode',
-                                    script: '''python3 -m venv bootstrap_uv
-                                               bootstrap_uv/bin/pip install --disable-pip-version-check uv
-                                               bootstrap_uv/bin/uv venv venv
-                                               UV_PROJECT_ENVIRONMENT=./venv bootstrap_uv/bin/uv sync --frozen --group ci
-                                               bootstrap_uv/bin/uv pip install --python=./venv/bin/python uv
-                                               rm -rf bootstrap_uv
-                                            '''
+                                    script: 'uv sync --frozen --group ci'
                                )
                             }
                         }
                         stage('Build Documentation'){
                             steps{
                                 catchError(buildResult: 'UNSTABLE', message: 'Sphinx has warnings', stageResult: 'UNSTABLE') {
-                                    sh '''. ./venv/bin/activate
-                                          sphinx-build --builder=html -W --keep-going -w logs/build_sphinx_html.log -d build/docs/.doctrees docs dist/docs/html
-                                       '''
+                                    sh 'uv run sphinx-build --builder=html -W --keep-going -w logs/build_sphinx_html.log -d build/docs/.doctrees docs dist/docs/html'
                                 }
                                 publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'dist/docs/html', reportFiles: 'index.html', reportName: 'Documentation', reportTitles: ''])
                                 script{
@@ -176,9 +168,7 @@ pipeline {
                                     steps{
                                         catchError(buildResult: 'UNSTABLE', message: 'Did not pass all pytest tests', stageResult: 'UNSTABLE') {
                                             sh(
-                                                script: '''. ./venv/bin/activate
-                                                           PYTHONFAULTHANDLER=1 coverage run --parallel-mode --source=uiucprescon.tripwire -m pytest --junitxml=./reports/tests/pytest/pytest-junit.xml --capture=no
-                                                       '''
+                                                script: 'PYTHONFAULTHANDLER=1 uv run coverage run --parallel-mode --source=uiucprescon.tripwire -m pytest --junitxml=./reports/tests/pytest/pytest-junit.xml --capture=no'
                                             )
                                         }
                                     }
@@ -194,7 +184,7 @@ pipeline {
                                     }
                                     steps{
                                         catchError(buildResult: 'SUCCESS', message: 'uv-secure found issues', stageResult: 'UNSTABLE') {
-                                            sh './venv/bin/uv run --only-group audit-dependencies --isolated uv-secure --disable-cache uv.lock'
+                                            sh 'uv run --only-group audit-dependencies --isolated uv-secure --disable-cache uv.lock'
                                         }
                                     }
                                 }
@@ -202,9 +192,7 @@ pipeline {
                                     steps {
                                         sh(
                                             label: 'Running Doctest Tests',
-                                            script: '''. ./venv/bin/activate
-                                                       coverage run --parallel-mode --source=uiucprescon/tripwire -m sphinx -b doctest docs/ dist/docs/html -d build/docs/doctrees --no-color -w logs/doctest.txt
-                                                    '''
+                                            script: 'uv run coverage run --parallel-mode --source=uiucprescon/tripwire -m sphinx -b doctest docs/ dist/docs/html -d build/docs/doctrees --no-color -w logs/doctest.txt'
                                             )
                                     }
                                     post{
@@ -218,9 +206,7 @@ pipeline {
                                         catchError(buildResult: 'SUCCESS', message: 'Sphinx docs linkcheck', stageResult: 'UNSTABLE') {
                                             sh(
                                                 label: 'Running Sphinx docs linkcheck',
-                                                script: '''. ./venv/bin/activate
-                                                           python -m sphinx -b doctest docs/ build/docs -d build/docs/doctrees --no-color --builder=linkcheck --fail-on-warning
-                                                           '''
+                                                script: 'uv run -m sphinx -b doctest docs/ build/docs -d build/docs/doctrees --no-color --builder=linkcheck --fail-on-warning'
                                                 )
                                         }
                                     }
@@ -235,10 +221,9 @@ pipeline {
                                         catchError(buildResult: 'SUCCESS', message: 'Ruff found issues', stageResult: 'UNSTABLE') {
                                             sh(
                                              label: 'Running Ruff',
-                                             script: '''. ./venv/bin/activate
-                                                        ruff check --config=pyproject.toml -o reports/ruffoutput.txt --output-format pylint --exit-zero
-                                                        ruff check --config=pyproject.toml -o reports/ruffoutput.json --output-format json
-                                                    '''
+                                             script: '''uv run ruff check --config=pyproject.toml -o reports/ruffoutput.txt --output-format pylint --exit-zero
+                                                        uv run ruff check --config=pyproject.toml -o reports/ruffoutput.json --output-format json
+                                                     '''
                                              )
                                         }
                                     }
@@ -253,7 +238,7 @@ pipeline {
                                         catchError(buildResult: 'SUCCESS', message: 'MyPy found issues', stageResult: 'UNSTABLE') {
                                             tee('logs/mypy.log'){
                                                 sh(label: 'Running MyPy',
-                                                   script: '. ./venv/bin/activate && mypy -p uiucprescon.tripwire --html-report reports/mypy/html'
+                                                   script: 'uv run mypy -p uiucprescon.tripwire --html-report reports/mypy/html'
                                                 )
                                             }
                                         }
@@ -268,8 +253,9 @@ pipeline {
                             }
                             post{
                                 always{
-                                    sh '''. ./venv/bin/activate
-                                          coverage combine && coverage xml -o reports/coverage.xml && coverage html -d reports/coverage
+                                    sh '''uv run coverage combine
+                                          uv run coverage xml -o reports/coverage.xml
+                                          uv run coverage html -d reports/coverage
                                        '''
                                     recordCoverage(tools: [[parser: 'COBERTURA', pattern: 'reports/coverage.xml']])
                                 }
@@ -303,7 +289,7 @@ pipeline {
                                     withCredentials([string(credentialsId: params.SONARCLOUD_TOKEN, variable: 'token')]) {
                                         sh(
                                             label: 'Running Sonar Scanner',
-                                            script: "./venv/bin/pysonar -Dsonar.projectVersion=${env.VERSION} -Dsonar.python.xunit.reportPath=./reports/tests/pytest/pytest-junit.xml -Dsonar.python.coverage.reportPaths=./reports/coverage.xml -Dsonar.python.ruff.reportPaths=./reports/ruffoutput.json -Dsonar.python.mypy.reportPaths=./logs/mypy.log ${env.CHANGE_ID ? '-Dsonar.pullrequest.key=$CHANGE_ID -Dsonar.pullrequest.base=$BRANCH_NAME' : '-Dsonar.branch.name=$BRANCH_NAME' } -t \$token",
+                                            script: "uv run pysonar -Dsonar.projectVersion=${env.VERSION} -Dsonar.python.xunit.reportPath=./reports/tests/pytest/pytest-junit.xml -Dsonar.python.coverage.reportPaths=./reports/coverage.xml -Dsonar.python.ruff.reportPaths=./reports/ruffoutput.json -Dsonar.python.mypy.reportPaths=./logs/mypy.log ${env.CHANGE_ID ? '-Dsonar.pullrequest.key=$CHANGE_ID -Dsonar.pullrequest.base=$BRANCH_NAME' : '-Dsonar.branch.name=$BRANCH_NAME' } -t \$token",
                                         )
                                     }
                                 }
@@ -364,7 +350,7 @@ pipeline {
                             }
                             agent {
                                 docker {
-                                    image 'python'
+                                    image 'ghcr.io/astral-sh/uv:debian'
                                     label 'docker && linux'
                                     args '--mount source=tripwire_cache,target=/tmp'
                                 }
@@ -372,11 +358,8 @@ pipeline {
                             steps{
                                 sh(
                                     label: 'Package',
-                                    script: '''python3 -m venv venv
-                                               trap "rm -rf venv" EXIT
-                                               venv/bin/pip install --disable-pip-version-check uv
-                                               venv/bin/uv export --format requirements-txt --frozen --no-emit-project --group dev > requirements-dev.txt
-                                               venv/bin/uv build --build-constraints=requirements-dev.txt
+                                    script: '''uv export --format requirements-txt --frozen --no-emit-project --group dev > requirements-dev.txt
+                                               uv build --build-constraints=requirements-dev.txt
                                             '''
                                 )
                                 stash includes: 'dist/*.whl,dist/*.tar.gz,dist/*.zip', name: 'PYTHON_PACKAGES'
@@ -451,7 +434,7 @@ pipeline {
                                                         checkout scm
                                                         unstash 'PYTHON_PACKAGES'
                                                         if(['linux', 'windows'].contains(entry.OS) && params.containsKey("INCLUDE_${entry.OS}-${entry.ARCHITECTURE}".toUpperCase()) && params["INCLUDE_${entry.OS}-${entry.ARCHITECTURE}".toUpperCase()]){
-                                                            docker.image(env.DEFAULT_PYTHON_DOCKER_IMAGE ? env.DEFAULT_PYTHON_DOCKER_IMAGE: 'python')
+                                                            docker.image(isUnix() ? 'ghcr.io/astral-sh/uv:debian' :'python')
                                                                 .inside(
                                                                     isUnix() ?
                                                                         '--mount source=tripwire_cache,target=/tmp' :
@@ -468,11 +451,9 @@ pipeline {
                                                                     ]){
                                                                          sh(
                                                                             label: 'Testing with tox',
-                                                                            script: """python3 -m venv venv
-                                                                                       ./venv/bin/pip install --disable-pip-version-check uv
-                                                                                       ./venv/bin/uv export --format requirements-txt --frozen --no-emit-project --group dev > ${env.UV_CONSTRAINT}
-                                                                                       ./venv/bin/uv python install cpython-${entry.PYTHON_VERSION}
-                                                                                       ./venv/bin/uvx -c requirements-dev.txt --with tox-uv tox --installpkg ${findFiles(glob: entry.PACKAGE_TYPE == 'wheel' ? 'dist/*.whl' : 'dist/*.tar.gz')[0].path} -e py${entry.PYTHON_VERSION.replace('.', '')}
+                                                                            script: """uv export --format requirements-txt --frozen --no-emit-project --group dev > ${env.UV_CONSTRAINT}
+                                                                                       uv python install cpython-${entry.PYTHON_VERSION}
+                                                                                       uvx -c requirements-dev.txt --with tox-uv tox --installpkg ${findFiles(glob: entry.PACKAGE_TYPE == 'wheel' ? 'dist/*.whl' : 'dist/*.tar.gz')[0].path} -e py${entry.PYTHON_VERSION.replace('.', '')}
                                                                                     """
                                                                         )
                                                                     }
@@ -760,9 +741,9 @@ pipeline {
                     }
                     agent {
                         docker{
-                            image 'python'
+                            image 'ghcr.io/astral-sh/uv:debian'
                             label 'docker && linux'
-                            args '--mount source=uv_python_install_dir,target=/tmp/uvpython'
+                            args '--mount source=uv_python_install_dir,target=/tmp/uvpython '
                         }
                     }
                     when{
@@ -790,25 +771,21 @@ pipeline {
                         unstash 'PYTHON_PACKAGES'
                         withEnv(
                             [
-                                "TWINE_REPOSITORY_URL=${SERVER_URL}",
+                                "UV_PUBLISH_URL=${SERVER_URL}",
                             ]
                         ){
                             withCredentials(
                                 [
                                     usernamePassword(
                                         credentialsId: 'jenkins-nexus',
-                                        passwordVariable: 'TWINE_PASSWORD',
-                                        usernameVariable: 'TWINE_USERNAME'
+                                        passwordVariable: 'UV_PUBLISH_PASSWORD',
+                                        usernameVariable: 'UV_PUBLISH_USERNAME'
                                     )
                                 ]
                             ){
                                 sh(
                                     label: 'Uploading to pypi',
-                                    script: '''python3 -m venv venv
-                                               trap "rm -rf venv" EXIT
-                                               ./venv/bin/pip install --disable-pip-version-check uv
-                                               ./venv/bin/uv run --frozen --only-group deploy twine upload --disable-progress-bar --non-interactive dist/*
-                                            '''
+                                    script: 'uv publish dist/*'
                                 )
                             }
                         }
