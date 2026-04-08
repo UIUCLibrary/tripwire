@@ -335,6 +335,14 @@ pipeline {
             }
         }
         stage('Package'){
+            when{
+                anyOf{
+                    equals expected: true, actual: params.BUILD_PACKAGES
+                    equals expected: true, actual: params.PACKAGE_MAC_OS_STANDALONE_X86_64
+                    equals expected: true, actual: params.PACKAGE_MAC_OS_STANDALONE_ARM64
+                    equals expected: true, actual: params.PACKAGE_STANDALONE_WINDOWS_INSTALLER
+                }
+            }
             stages{
                 stage('Python Packages'){
                     when{
