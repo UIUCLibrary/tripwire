@@ -2,14 +2,21 @@
 # PYTHON_ARGCOMPLETE_OK
 
 import argparse
+import contextlib
 import functools
 import logging
 import pathlib
 import sys
 from typing import Callable, Any, Dict, Tuple, Optional
 
-from uiucprescon.tripwire import validation, utils, manifest_check, metadata
-from uiucprescon.tripwire.files import InvalidFileFormat
+from uiucprescon.tripwire import (
+    validation,
+    utils,
+    manifest_check,
+    metadata,
+    introspection,
+)
+from uiucprescon.tripwire.exceptions import InvalidFileFormat
 import argcomplete
 
 logger = logging.getLogger(__name__)
@@ -121,10 +128,22 @@ def get_arg_parser() -> Tuple[
 
     metadata_show_show.add_argument("glob", type=str)
 
-    metadata_validate = metadata_parser.add_parser("validate")
+    metadata_validate = metadata_parser.add_parser(
+        "validate", help="validate files from mediaconch policy"
+    )
     metadata_validate.add_argument("policy_file", type=pathlib.Path)
     metadata_validate.add_argument("glob", type=str)
-
+    metadata_validate.add_argument(
+        "-v",
+        "--verbose",
+        action="count",
+        default=1,
+        help="increase output verbosity",
+        dest="verbosity",
+    )
+    sub_commands.add_parser(
+        "info", help="get information about current version of tripwire"
+    )
     return (
         parser,
         {
@@ -142,14 +161,56 @@ def metadata_show_command(args: argparse.Namespace) -> None:
     metadata.show_metadata(args.glob, search_path=pathlib.Path("."))
 
 
+@contextlib.contextmanager
+def module_logging_verbosity(logger, verbosity=logging.INFO):
+    """Set logging level to verbosity for a module.
+
+    This is useful for setting the logging level for a module to a specific
+    level for the duration of a block of code, and then resetting it back after
+    leaving the decorated function's scope.
+    """
+    starting_verbosity = logger.getEffectiveLevel()
+    handler_levels = {}
+    try:
+        logger.setLevel(verbosity)
+        for handler in logger.handlers:
+            handler_levels[handler.name] = handler.level
+            handler.setLevel(verbosity)
+        yield
+    finally:
+        logger.setLevel(starting_verbosity)
+        for handler in logger.handlers:
+            if handler.name in handler_levels:
+                handler.setLevel(handler_levels[handler.name])
+
+
 @capture_log(logger=metadata.logger)
-def metadata_validate_command(args: argparse.Namespace) -> None:
+def metadata_validate_command(
+    args: argparse.Namespace,
+    validate_metadata_strategy=metadata.validate_metadata,
+) -> None:
     """Run metadata validate command."""
-    if not metadata.validate_metadata(
-        args.glob, policy_xml_file=args.policy_file
+
+    def get_log_level(verbosity: int) -> int:
+        if verbosity > 2:
+            print("verbosity level to max, defaulting to DEBUG")
+            return logging.DEBUG
+        else:
+            match args.verbosity:
+                case 1:
+                    return logging.INFO
+                case 2:
+                    return logging.DEBUG
+            return logging.INFO
+
+    with module_logging_verbosity(
+        metadata.logger, verbosity=get_log_level(args.verbosity)
     ):
-        print("failed metadata validation")
-        sys.exit(1)
+        if not validate_metadata_strategy(
+            args.glob, policy_xml_file=args.policy_file
+        ):
+            print("failed metadata validation")
+            sys.exit(1)
 
     print("passed metadata validation")
 
@@ -163,6 +224,11 @@ def metadata_command(args: argparse.Namespace, subcommand: str) -> None:
             metadata_validate_command(args)
         case _:
             raise ValueError(f"Unknown metadata subcommand: {subcommand}")
+
+
+def show_info_command() -> None:
+    """Show info about application."""
+    print(introspection.get_application_info())
 
 
 def main() -> None:
@@ -182,6 +248,8 @@ def main() -> None:
             )
         case "metadata":
             metadata_command(args, args.metadata_command)
+        case "info":
+            show_info_command()
 
 
 if __name__ == "__main__":

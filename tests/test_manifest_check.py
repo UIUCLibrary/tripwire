@@ -5,7 +5,8 @@ from unittest.mock import Mock, MagicMock
 import pytest
 
 from uiucprescon.tripwire import manifest_check
-from uiucprescon.tripwire.files import TSVManifest, InvalidFileFormat
+from uiucprescon.tripwire.files import TSVManifest
+from uiucprescon.tripwire.exceptions import InvalidFileFormat
 import sample_data
 
 

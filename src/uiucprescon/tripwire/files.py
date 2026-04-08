@@ -1,4 +1,9 @@
-"""File handling for files used by tripwire."""
+"""File handling for files used by tripwire.
+
+.. versionchanged:: 0.3.7
+   InvalidFileFormat now located in uiucprescon.tripwire.exceptions
+
+"""
 
 import abc
 import collections
@@ -33,22 +38,6 @@ P = ParamSpec("P")
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-
-
-class InvalidFileFormat(Exception):
-    """Invalid file format exception."""
-
-    def __init__(self, file: str = "", details: str = "") -> None:
-        message = (
-            f"Invalid file format. File: {file}"
-            if file
-            else "Invalid file format"
-        )
-        if details:
-            message = f"{message}. Details: {details}"
-        super().__init__(message)
-        self.file_name = file
-        self.details = details
 
 
 @dataclasses.dataclass(frozen=True)

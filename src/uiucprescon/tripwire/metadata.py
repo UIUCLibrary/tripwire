@@ -9,7 +9,7 @@ import abc
 import itertools
 from collections import defaultdict
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import io
 import logging
 import shutil
@@ -188,6 +188,11 @@ class AbsValidateStrategy(abc.ABC):
 class MediaConchValidator(AbsValidateStrategy):
     """MediaConch validation strategy."""
 
+    @dataclass
+    class _Results:
+        files_inspected: int = 0
+        files_with_issues: Set[FileIssues] = field(default_factory=set)
+
     def __init__(self) -> None:
         self.policy_file: Optional[pathlib.Path] = None
         self.issue_formatter: Callable[[MediaConchRule], str] = (
@@ -233,43 +238,60 @@ class MediaConchValidator(AbsValidateStrategy):
         if not self.validate_policy_file(self.policy_file):
             raise ValueError("Policy file must be valid policy file.")
         mc.add_policy(str(self.policy_file))
+        final_results = MediaConchValidator._Results()
 
-        files_with_issues = set()
-        files_inspected = 0
         try:
             for file in self.iglob(glob, recursive=True):
                 if os.path.isdir(file):
                     continue
-                print(f"Validating {file}")
-                result: MediaconchReportData = json.loads(
-                    mc.get_report(mc.add_file(str(file)))
-                )
-                files_inspected += 1
-                file_is_valid = True
-                for item in self._parse_media_conch_report(result):
-                    assert item["ref"] == str(file), (
-                        f"Expected {item['ref']} to be {file}"
-                    )
-                    failing_rules = set(
-                        self._iter_failing_rules(item["policies"])
-                    )
-                    if failing_rules:
-                        file_is_valid = False
-                    files_with_issues.add(
-                        FileIssues(file=file, issues=failing_rules)
-                    )
 
-                if not file_is_valid:
-                    logger.error(f"Validating {file}: Fail")
-                else:
-                    logger.info(f"Validating {file}: Pass")
+                logger.info(f"Validating {file}")
+                file_results = self.get_mediaconch_results(file, mc)
+                final_results.files_inspected += file_results.files_inspected
+                final_results.files_with_issues = (
+                    final_results.files_with_issues.union(
+                        file_results.files_with_issues
+                    )
+                )
         except KeyboardInterrupt:
             logger.info("Validation interrupted by user.")
-        logger.info(f"Inspected {files_inspected} files.")
+        logger.info(f"Inspected {final_results.files_inspected} files.")
         return ValidationResult(
-            valid=len(files_with_issues) > 0,
-            files_with_issues=files_with_issues,
+            valid=len(final_results.files_with_issues) > 0,
+            files_with_issues=final_results.files_with_issues,
         )
+
+    def get_mediaconch_results(
+        self, filepath: str, mc: mediaconch.MediaConch
+    ) -> _Results:
+        json_report = mc.get_report(mc.add_file(str(filepath)))
+        try:
+            file_result: MediaconchReportData = json.loads(json_report)
+        except json.JSONDecodeError as err:
+            logger.debug(
+                f"Failed to parse MediaConch report for file {filepath}. "
+                f"\nReport content: \n{json_report}"
+            )
+            raise err
+        results = MediaConchValidator._Results()
+        results.files_inspected += 1
+        file_is_valid = True
+        for item in self._parse_media_conch_report(file_result):
+            assert item["ref"] == str(filepath), (
+                f"Expected {item['ref']} to be {filepath}"
+            )
+            failing_rules = set(self._iter_failing_rules(item["policies"]))
+            if failing_rules:
+                file_is_valid = False
+            results.files_with_issues.add(
+                FileIssues(file=filepath, issues=failing_rules)
+            )
+
+        if not file_is_valid:
+            logger.error(f"Validating {filepath}: Fail")
+        else:
+            logger.info(f"Validating {filepath}: Pass")
+        return results
 
 
 class ValidationReportBuilder:

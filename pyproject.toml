@@ -26,20 +26,27 @@ documentation = "https://uiuclibrary.github.io/tripwire/"
 tripwire = "uiucprescon.tripwire.main:main"
 
 [dependency-groups]
-test = ["pytest>7", "coverage"]
+test = ["pytest>7"]
 docs = ["sphinx"]
 audit-dependencies = ['uv-secure']
+type-checking = ["mypy", "types-tqdm"]
+lint = ["ruff"]
+tox = ["tox"]
+tox-uv = [
+    {include-group = "tox"},
+    "tox-uv-bare"
+]
 dev = [
     "lxml",
-    "mypy",
     "pre-commit",
     "pytest",
-    "ruff",
-    "tox",
-    "types-tqdm",
     {include-group = "audit-dependencies"},
     {include-group = "docs"},
+    {include-group = "lint"},
     {include-group = "test"},
+    {include-group = "tox"},
+    {include-group = "type-checking"},
+    "coverage"
     ]
 deploy = ["twine"]
 ci = ["pysonar", {include-group = "dev"}]
@@ -68,6 +75,7 @@ pre_bump_hooks = [
 [tool.ruff]
 line-length = 79
 extend-exclude = ["tests"]
+include = ["src/**/*.py"]
 
 [tool.ruff.lint]
 extend-select = [
@@ -89,6 +97,44 @@ envlist = ["3.11", "3.12", "3.13"]
 description = "Run test under {base_python}"
 commands = [["{env_bin_dir}{/}pytest"]]
 dependency_groups = ['test']
+
+[tool.tox.env.type-checking]
+description = "Run mypy type checking"
+dependency_groups = ['type-checking']
+commands = [["{env_bin_dir}{/}mypy", "-p", "uiucprescon.tripwire"]]
+
+[tool.tox.env.lint]
+description = "Run ruff linting"
+dependency_groups = ['lint']
+skip_install = true
+commands = [["{env_bin_dir}{/}ruff", "check"]]
+
+[tool.tox.env.docs]
+description = "Build documentation"
+dependency_groups = ['docs']
+commands = [
+    [
+        "{env_bin_dir}{/}sphinx-build", "docs", "{temp_dir}{/}build{/}docs",
+        "--fail-on-warning",
+        "--keep-going",
+        "--write-all",
+        "--fresh-env"
+    ]
+]
+
+[tool.tox.env.docs-linkcheck]
+description = "Build documentation"
+dependency_groups = ['docs']
+commands = [
+    [
+        "{env_bin_dir}{/}sphinx-build", "docs", "{temp_dir}{/}build{/}docs-link-check",
+        "--fail-on-warning",
+        "--keep-going",
+        "--write-all",
+        "--fresh-env",
+        "--builder=linkcheck"
+    ]
+]
 
 [tool.mypy]
 mypy_path = "src"

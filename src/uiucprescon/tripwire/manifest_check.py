@@ -16,6 +16,8 @@ from typing import (
 )
 import logging
 from uiucprescon.tripwire import files as tripwire_files
+from uiucprescon.tripwire.exceptions import InvalidFileFormat
+
 from tqdm import tqdm
 
 __all__ = ["locate_manifest_files"]
@@ -349,9 +351,7 @@ def locate_manifest_files_fp(
     )
     manifest = tripwire_files.TSVManifest(manifest_tsv_fp)
     if not manifest.is_valid_file():
-        raise tripwire_files.InvalidFileFormat(
-            details="Not a valid TSV manifest file."
-        )
+        raise InvalidFileFormat(details="Not a valid TSV manifest file.")
 
     scanner = PackageScanner(search_path)
     for row in (
@@ -389,8 +389,8 @@ def locate_manifest_files(
             unexpected_files = locate_manifest_files_fp(
                 fp, search_path, manifest_type=manifest_type
             )
-    except tripwire_files.InvalidFileFormat as e:
-        raise tripwire_files.InvalidFileFormat(
+    except InvalidFileFormat as e:
+        raise InvalidFileFormat(
             file=manifest_tsv.name, details=e.details
         ) from e
     if unexpected_files:
