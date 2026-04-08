@@ -101,7 +101,6 @@ dependency_groups = ['test']
 [tool.tox.env.type-checking]
 description = "Run mypy type checking"
 dependency_groups = ['type-checking']
-skip_install = true
 commands = [["{env_bin_dir}{/}mypy", "-p", "uiucprescon.tripwire"]]
 
 [tool.tox.env.lint]
@@ -109,6 +108,33 @@ description = "Run ruff linting"
 dependency_groups = ['lint']
 skip_install = true
 commands = [["{env_bin_dir}{/}ruff", "check"]]
+
+[tool.tox.env.docs]
+description = "Build documentation"
+dependency_groups = ['docs']
+commands = [
+    [
+        "{env_bin_dir}{/}sphinx-build", "docs", "{temp_dir}{/}build{/}docs",
+        "--fail-on-warning",
+        "--keep-going",
+        "--write-all",
+        "--fresh-env"
+    ]
+]
+
+[tool.tox.env.docs-linkcheck]
+description = "Build documentation"
+dependency_groups = ['docs']
+commands = [
+    [
+        "{env_bin_dir}{/}sphinx-build", "docs", "{temp_dir}{/}build{/}docs-link-check",
+        "--fail-on-warning",
+        "--keep-going",
+        "--write-all",
+        "--fresh-env",
+        "--builder=linkcheck"
+    ]
+]
 
 [tool.mypy]
 mypy_path = "src"
