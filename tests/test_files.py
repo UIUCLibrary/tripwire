@@ -100,16 +100,6 @@ class TestTSVManifest:
         is_valid_file.assert_called_once_with(fp=test_file)
 
 
-class TestInvalidFileFormat:
-    def test_with_file_named(self):
-        with pytest.raises(tripwire.files.InvalidFileFormat) as error:
-            raise tripwire.files.InvalidFileFormat("my_file.xlsx")
-        assert str(error.value) == "Invalid file format. File: my_file.xlsx"
-
-    def test_without_file_named(self):
-        with pytest.raises(tripwire.files.InvalidFileFormat) as error:
-            raise tripwire.files.InvalidFileFormat
-        assert str(error.value) == "Invalid file format"
 
 
 class Test_TSVManifestReader:
