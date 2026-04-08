@@ -3,16 +3,17 @@
 import pathlib
 from typing import Optional, Callable, Iterable, List, cast
 from importlib.metadata import version, PackageNotFoundError
+from uiucprescon.tripwire.exceptions import TripwireException
 import tomllib
 
 __all__ = ["get_version"]
 
 
-class InvalidVersionStrategy(Exception):
+class InvalidVersionStrategy(TripwireException):
     pass
 
 
-class MissingVersionInformation(Exception):
+class MissingVersionInformation(TripwireException):
     pass
 
 

@@ -10,7 +10,7 @@ import sys
 from typing import Callable, Any, Dict, Tuple, Optional
 
 from uiucprescon.tripwire import validation, utils, manifest_check, metadata
-from uiucprescon.tripwire.files import InvalidFileFormat
+from uiucprescon.tripwire.exceptions import InvalidFileFormat
 import argcomplete
 
 logger = logging.getLogger(__name__)
