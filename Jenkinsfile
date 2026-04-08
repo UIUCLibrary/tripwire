@@ -121,7 +121,7 @@ pipeline {
                     environment{
                         PIP_CACHE_DIR='/tmp/pipcache'
                         UV_TOOL_DIR='/tmp/uvtools'
-                        UV_PYTHON_INSTALL_DIR='/tmp/uvpython'
+                        UV_PYTHON_CACHE_DIR='/tmp/uvpython'
                         UV_CACHE_DIR='/tmp/uvcache'
                     }
                     agent {
@@ -354,7 +354,7 @@ pipeline {
                                 PIP_CACHE_DIR='/tmp/pipcache'
                                 UV_CACHE_DIR='/tmp/uvcache'
                                 UV_TOOL_DIR='/tmp/uvtools'
-                                UV_PYTHON_INSTALL_DIR='/tmp/uvpython'
+                                UV_PYTHON_CACHE_DIR='/tmp/uvpython'
                             }
                             agent {
                                 docker {
@@ -451,7 +451,7 @@ pipeline {
                                                                     withEnv([
                                                                         'PIP_CACHE_DIR=/tmp/pipcache',
                                                                         'UV_TOOL_DIR=/tmp/uvtools',
-                                                                        'UV_PYTHON_INSTALL_DIR=/tmp/uvpython',
+                                                                        'UV_PYTHON_CACHE_DIR=/tmp/uvpython',
                                                                         'UV_CACHE_DIR=/tmp/uvcache',
                                                                     ]){
                                                                          sh(
@@ -668,7 +668,7 @@ pipeline {
                                         docker{
                                             image 'python'
                                             label 'windows && docker && x86_64'
-                                            args '--mount source=uv_python_install_dir,target=C:\\Users\\ContainerUser\\Documents\\uvpython'
+                                            args '--mount source=uv_python_cache_dir,target=C:\\Users\\ContainerUser\\Documents\\uvpython'
                                         }
                                     }
                                     steps{
@@ -742,14 +742,14 @@ pipeline {
                     environment{
                         PIP_CACHE_DIR='/tmp/pipcache'
                         UV_TOOL_DIR='/tmp/uvtools'
-                        UV_PYTHON_INSTALL_DIR='/tmp/uvpython'
+                        UV_PYTHON_CACHE_DIR='/tmp/uvpython'
                         UV_CACHE_DIR='/tmp/uvcache'
                     }
                     agent {
                         docker{
                             image 'ghcr.io/astral-sh/uv:debian'
                             label 'docker && linux'
-                            args '--mount source=uv_python_install_dir,target=/tmp/uvpython '
+                            args '--mount source=uv_python_cache_dir,target=/tmp/uvpython '
                         }
                     }
                     when{
