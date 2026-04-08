@@ -128,7 +128,7 @@ pipeline {
                         docker{
                             image 'python'
                             label 'docker && linux && x86_64'
-                            args '--mount source=tripwire_cache,target=/tmp'
+                            args '--mount source=tripwire_cache,target=/tmp --tmpfs /.config:exec --tmpfs /.tree-sitter:exec'
                         }
 
                     }
