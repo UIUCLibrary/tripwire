@@ -1,8 +1,10 @@
 import json
+import logging
 import pathlib
 from unittest.mock import Mock, patch
 
 import pytest
+from pygments.lexers import wowtoc
 
 from uiucprescon.tripwire import metadata as metadata_module
 
@@ -247,7 +249,7 @@ class TestMediaConchValidator:
         )
         validator.validate("*.mov")
         assert "Validating dummy.mov" in str(caplog.records[0])
-        assert caplog.records[0].levelname == expected_levelname
+        assert caplog.records[1].levelname == expected_levelname
 
     def test_validate_raises_without_policy_file(self):
         validator = metadata_module.MediaConchValidator()
@@ -274,6 +276,27 @@ class TestMediaConchValidator:
         validator.iglob = Mock(side_effect=KeyboardInterrupt)
         validator.validate("*.mov")
         assert "Validation interrupted by user" in caplog.text
+
+    def test_get_mediaconch_results_json_error_logged(
+        self, caplog, monkeypatch
+    ):
+        caplog.set_level(logging.DEBUG)
+        validator = metadata_module.MediaConchValidator()
+        metadata_module.logger.setLevel(logging.DEBUG)
+
+        mc = Mock(get_report=Mock(name="get_report", return_value="somedata"))
+        with pytest.raises(json.JSONDecodeError):
+            monkeypatch.setattr(
+                json,
+                "load",
+                Mock(
+                    side_effect=json.JSONDecodeError(
+                        "Expecting value", "somedata", 0
+                    )
+                ),
+            )
+            validator.get_mediaconch_results("somefile", mc)
+        assert "Failed to parse MediaConch" in caplog.text
 
 
 class TestValidationReportBuilder:
