@@ -1,3 +1,19 @@
+## v0.3.7 (2026-04-09)
+
+### Feat
+
+- added info subcommand
+- --verbose option added to tripwire metadata validate
+
+### Fix
+
+- update cryptography from 46.0.6 -> 46.0.7
+- import error in get_package_version()
+
+### Refactor
+
+- exceptions have own module
+
 ## v0.3.6 (2025-10-23)
 
 ### Fix
