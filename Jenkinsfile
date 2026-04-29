@@ -128,7 +128,7 @@ pipeline {
                         docker{
                             image 'ghcr.io/astral-sh/uv:debian'
                             label 'docker && linux && x86_64'
-                            args '--mount source=tripwire_cache,target=/tmp --tmpfs /.config:exec --tmpfs /.tree-sitter:exec'
+                            args "--label=purpose=ci --label \"JOB_NAME=\$JOB_NAME\" --label \"absoluteUrl=${currentBuild.absoluteUrl}\" --label \"BUILD_NUMBER=${currentBuild.number}\" --mount source=tripwire_cache,target=/tmp --tmpfs /.config:exec --tmpfs /.tree-sitter:exec"
                         }
 
                     }
@@ -360,7 +360,7 @@ pipeline {
                                 docker {
                                     image 'ghcr.io/astral-sh/uv:debian'
                                     label 'docker && linux'
-                                    args '--mount source=tripwire_cache,target=/tmp'
+                                    args "--label=purpose=ci --label \"JOB_NAME=\$JOB_NAME\" --label \"absoluteUrl=${currentBuild.absoluteUrl}\" --label \"BUILD_NUMBER=${currentBuild.number}\" --mount source=tripwire_cache,target=/tmp"
                                 }
                             }
                             steps{
@@ -440,12 +440,14 @@ pipeline {
                                                         unstash 'PYTHON_PACKAGES'
                                                         if(['linux', 'windows'].contains(entry.OS) && params.containsKey("INCLUDE_${entry.OS}-${entry.ARCHITECTURE}".toUpperCase()) && params["INCLUDE_${entry.OS}-${entry.ARCHITECTURE}".toUpperCase()]){
                                                             docker.image(isUnix() ? 'ghcr.io/astral-sh/uv:debian' :'python')
-                                                                .inside(
-                                                                    isUnix() ?
-                                                                        '--mount source=tripwire_cache,target=/tmp --tmpfs /.local/share:exec --tmpfs /.local/bin:exec' :
-                                                                        "--mount type=volume,source=uv_python_cache_dir,target=C:\\Users\\ContainerUser\\Documents\\cache\\uvpython \
-                                                                        --mount type=volume,source=pipcache,target=C:\\Users\\ContainerUser\\Documents\\cache\\pipcache \
-                                                                        --mount type=volume,source=uv_cache_dir,target=C:\\Users\\ContainerUser\\Documents\\cache\\uvcache"
+                                                                .inside("--label=purpose=ci --label \"JOB_NAME=\$JOB_NAME\" --label \"absoluteUrl=${currentBuild.absoluteUrl}\" --label \"BUILD_NUMBER=${currentBuild.number}\" " +
+                                                                    (
+                                                                        isUnix() ?
+                                                                            '--mount source=tripwire_cache,target=/tmp --tmpfs /.local/share:exec --tmpfs /.local/bin:exec'
+                                                                        :
+                                                                            "--mount type=volume,source=uv_python_cache_dir,target=C:\\Users\\ContainerUser\\Documents\\cache\\uvpython \
+                                                                             --mount type=volume,source=pipcache,target=C:\\Users\\ContainerUser\\Documents\\cache\\pipcache \
+                                                                             --mount type=volume,source=uv_cache_dir,target=C:\\Users\\ContainerUser\\Documents\\cache\\uvcache")
                                                                 ){
                                                                  if(isUnix()){
                                                                     withEnv([
@@ -668,7 +670,7 @@ pipeline {
                                         docker{
                                             image 'python'
                                             label 'windows && docker && x86_64'
-                                            args '--mount source=uv_python_cache_dir,target=C:\\Users\\ContainerUser\\Documents\\uvpython'
+                                            args "--label=purpose=ci --label \"JOB_NAME=\$JOB_NAME\" --label \"absoluteUrl=${currentBuild.absoluteUrl}\" --label \"BUILD_NUMBER=${currentBuild.number}\" --mount source=uv_python_cache_dir,target=C:\\Users\\ContainerUser\\Documents\\uvpython"
                                         }
                                     }
                                     steps{
@@ -699,6 +701,7 @@ pipeline {
                                         docker {
                                             image 'mcr.microsoft.com/windows/servercore:ltsc2025'
                                             label 'windows && docker && x86_64'
+                                            args "--label=purpose=ci --label \"JOB_NAME=\$JOB_NAME\" --label \"absoluteUrl=${currentBuild.absoluteUrl}\" --label \"BUILD_NUMBER=${currentBuild.number}\""
                                         }
                                     }
                                     options {
@@ -749,7 +752,7 @@ pipeline {
                         docker{
                             image 'ghcr.io/astral-sh/uv:debian'
                             label 'docker && linux'
-                            args '--mount source=uv_python_cache_dir,target=/tmp/uvpython '
+                            args "--label=purpose=ci --label \"JOB_NAME=\$JOB_NAME\" --label \"absoluteUrl=${currentBuild.absoluteUrl}\" --label \"BUILD_NUMBER=${currentBuild.number}\" --mount source=uv_python_cache_dir,target=/tmp/uvpython"
                         }
                     }
                     when{
