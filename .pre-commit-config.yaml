@@ -11,7 +11,8 @@ repos:
     - pre-push
   repo: https://github.com/commitizen-tools/commitizen
   rev: v4.5.0
-- repo: https://github.com/owenlamont/uv-secure
-  rev: 0.13.0
+- repo: https://github.com/astral-sh/uv-pre-commit
+  # uv version.
+  rev: 0.11.8
   hooks:
-    - id: uv-secure
+    - id: uv-audit
