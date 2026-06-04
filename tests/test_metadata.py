@@ -1,13 +1,17 @@
 import json
 import logging
+import os
 import pathlib
+import shutil
 from unittest.mock import Mock, patch
 
 import pytest
 from pygments.lexers import wowtoc
 
 from uiucprescon.tripwire import metadata as metadata_module
+import sample_media_files
 
+TRIPWIRE_SAMPLE_FILES_ENV_VARIABLE = "TRIPWIRE_SAMPLE_FILES"
 
 @pytest.mark.parametrize(
     "terminal_width, expected", [(80, 80), (100, 100), (200, 160), (50, 80)]
@@ -72,6 +76,21 @@ def test_locate_files(monkeypatch):
         "dummy.mp3"
     ]
 
+@pytest.fixture(scope="session")
+def sample_files(tmp_path_factory):
+    if not any(condition for condition in [
+        os.getenv(TRIPWIRE_SAMPLE_FILES_ENV_VARIABLE),
+        shutil.which('ffmpeg')
+    ]):
+        pytest.skip(
+            f"neither environment variable "
+            f"{TRIPWIRE_SAMPLE_FILES_ENV_VARIABLE} nor ffmpeg was found, "
+            f"skipping integration test"
+        )
+    if sample_file_path := os.getenv(TRIPWIRE_SAMPLE_FILES_ENV_VARIABLE):
+        return sample_media_files.get_sample_files(sample_file_path)
+
+    return sample_media_files.create_sample_files(tmp_path_factory.mktemp('samples'))
 
 def test_locate_files_uses_default_filters(monkeypatch):
     mock_glob = Mock(return_value=["dummy.mp3"])
@@ -296,6 +315,16 @@ class TestMediaConchValidator:
             )
             validator.get_mediaconch_results("somefile", mc)
         assert "Failed to parse MediaConch" in caplog.text
+
+    def test_integration(self, sample_files, tmp_path):
+        bars = sample_files["bars_and_tone_file"]
+        test_path = tmp_path / "test"
+        test_path.mkdir()
+        shutil.copyfile(bars, test_path / "bars.mp4")
+        validator = metadata_module.MediaConchValidator()
+        a = validator.validate(f"{test_path}/*.mp4")
+        assert a.valid
+
 
 
 class TestValidationReportBuilder:
