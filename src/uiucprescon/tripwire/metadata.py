@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import abc
 import itertools
+import warnings
 from collections import defaultdict
 import json
 from dataclasses import dataclass, field
@@ -231,13 +232,14 @@ class MediaConchValidator(AbsValidateStrategy):
                         yield self.issue_formatter(rule)
 
     def validate(self, glob: str) -> ValidationResult:
-        if not self.policy_file:
-            raise ValueError("Policy file must be set before validation.")
 
         mc = self.mediaconch or self._get_media_conch()
-        if not self.validate_policy_file(self.policy_file):
-            raise ValueError("Policy file must be valid policy file.")
-        mc.add_policy(str(self.policy_file))
+        if not self.policy_file:
+            warnings.warn(UserWarning("No policy was set before validation"))
+        else:
+            if not self.validate_policy_file(self.policy_file):
+                raise ValueError("Policy file must be valid policy file.")
+            mc.add_policy(str(self.policy_file))
         final_results = MediaConchValidator._Results()
 
         try:
@@ -280,7 +282,7 @@ class MediaConchValidator(AbsValidateStrategy):
             assert item["ref"] == str(filepath), (
                 f"Expected {item['ref']} to be {filepath}"
             )
-            failing_rules = set(self._iter_failing_rules(item["policies"]))
+            failing_rules = set(self._iter_failing_rules(item.get("policies", [])))
             if failing_rules:
                 file_is_valid = False
             results.files_with_issues.add(

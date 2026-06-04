@@ -251,12 +251,11 @@ class TestMediaConchValidator:
         assert "Validating dummy.mov" in str(caplog.records[0])
         assert caplog.records[1].levelname == expected_levelname
 
-    def test_validate_raises_without_policy_file(self):
+    def test_validate_without_policy_file_produces_warning(self):
         validator = metadata_module.MediaConchValidator()
         validator.iglob = lambda *_, **__: ["dummy.mov"]
-        with pytest.raises(
-            ValueError, match="Policy file must be set before validation."
-        ):
+        validator.get_mediaconch_results = Mock(name="get_mediaconch_results", return_value=validator._Results())
+        with pytest.warns(UserWarning):
             validator.validate("*.mov")
 
     def test_validate_raises_with_invalid_policy_file(self):
