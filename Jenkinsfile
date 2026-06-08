@@ -59,7 +59,20 @@ def get_sonarqube_unresolved_issues(report_task_file){
         if(! props['serverUrl'] || ! props['projectKey']){
             error "Could not find serverUrl or projectKey in ${report_task_file}"
         }
-        def response = httpRequest url : props['serverUrl'] + '/api/issues/search?componentKeys=' + props['projectKey'] + '&resolved=no'
+        def response
+        def attempt = 0
+        retry(3){
+            attempt += 1
+            try{
+                response = httpRequest url : props['serverUrl'] + '/api/issues/search?componentKeys=' + props['projectKey'] + '&resolved=no'
+            }catch(Exception e){
+                if( attempt < 3){
+                    echo "Attempt ${attempt} failed, retrying after 5 seconds..."
+                    sleep 5
+                }
+                throw e
+            }
+        }
         def outstandingIssues = readJSON text: response.content
         return outstandingIssues
     }
