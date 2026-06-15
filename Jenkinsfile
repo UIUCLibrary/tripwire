@@ -584,11 +584,9 @@ pipeline {
                                     steps{
                                         sh './contrib/create_mac_distrib.sh'
                                         stash includes: 'dist/*.tar.gz', name: 'APPLE_APPLICATION_X86_64'
+                                        archiveArtifacts artifacts: 'dist/*.tar.gz', fingerprint: true
                                     }
                                     post{
-                                        success{
-                                            archiveArtifacts artifacts: 'dist/*.tar.gz', fingerprint: true
-                                        }
                                         cleanup{
                                             sh "${tool(name: 'Default', type: 'git')} clean -dfx"
                                             cleanWs(
@@ -645,11 +643,9 @@ pipeline {
                                     steps{
                                         sh './contrib/create_mac_distrib.sh'
                                         stash includes: 'dist/*.tar.gz', name: 'APPLE_APPLICATION_ARM64'
+                                        archiveArtifacts artifacts: 'dist/*.tar.gz', fingerprint: true
                                     }
                                     post{
-                                        success{
-                                            archiveArtifacts artifacts: 'dist/*.tar.gz', fingerprint: true
-                                        }
                                         cleanup{
                                             sh "${tool(name: 'Default', type: 'git')} clean -dfx"
                                             cleanWs(
@@ -715,11 +711,9 @@ pipeline {
                                             bat(script: 'powershell contrib/create_windows_distrib.ps1')
                                         }
                                         stash includes: 'dist/*.zip', name: 'WINDOWS_APPLICATION_X86_64'
+                                        archiveArtifacts artifacts: 'dist/*.zip', fingerprint: true
                                     }
                                     post{
-                                        success{
-                                            archiveArtifacts artifacts: 'dist/*.zip', fingerprint: true
-                                        }
                                         cleanup{
                                             cleanWs(
                                                 deleteDirs: true,
