@@ -1395,25 +1395,15 @@ wheels = [
 
 [[package]]
 name = "uiucprescon-pymediaconch"
-version = "0.1.1"
+version = "0.1.2"
 source = { registry = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/simple" }
-sdist = { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.1/uiucprescon_pymediaconch-0.1.1.tar.gz", hash = "sha256:c7b3217e59aab7d772352baa230f1628dccaf66ab8f4806840e11feab4ca55fd" }
+sdist = { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.2/uiucprescon_pymediaconch-0.1.2.tar.gz", hash = "sha256:97cd9b95d521b6541359b34c9097a796cbeb69e4a0aec80786ffaa34722c4390" }
 wheels = [
-    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.1/uiucprescon_pymediaconch-0.1.1-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:945958c5d60bf8e089561b0cc6f12d9b1b2136da9e1b9816d419ee5e7571c44a" },
-    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.1/uiucprescon_pymediaconch-0.1.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:1c3641f6106248c2040bc87a56ec877b5c321cf1378e59ae8b60fa85239feca5" },
-    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.1/uiucprescon_pymediaconch-0.1.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:8ad08d5d39f704d054c6298a40aa8f87f41f50bd6c5d42c135f854396abd4b7d" },
-    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.1/uiucprescon_pymediaconch-0.1.1-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:e30a7e78ac53127fcd45165b6757b1429cdb4e5186dfa3db68e8d0b9e7957209" },
-    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.1/uiucprescon_pymediaconch-0.1.1-cp311-cp311-win_amd64.whl", hash = "sha256:431d0c25c619f3b24173e28d8998174dc0fb9ad5d473481c4e0e69fd464bdbf8" },
-    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.1/uiucprescon_pymediaconch-0.1.1-cp312-cp312-macosx_10_9_universal2.whl", hash = "sha256:d0a4910da374eb77a349190de9bff86373ecd68055cee766a1de1c584416791e" },
-    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.1/uiucprescon_pymediaconch-0.1.1-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:6050fad42e63ab515f02de48f2b836f4df3684749749ceac2e61310c1085495e" },
-    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.1/uiucprescon_pymediaconch-0.1.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:170dbce961580c41c21d33feb37e29d2c03f751f23378fe3857cd5be17272c20" },
-    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.1/uiucprescon_pymediaconch-0.1.1-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:23d13d7d3e6c3f8a6222271a4ad4a396fa6f8c90161a1fd129825abb0bf00f2f" },
-    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.1/uiucprescon_pymediaconch-0.1.1-cp312-cp312-win_amd64.whl", hash = "sha256:40c8ed258bd216bbdccbab0fece26a65f46f2b57552ce14a313e593a457e3afb" },
-    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.1/uiucprescon_pymediaconch-0.1.1-cp313-cp313-macosx_10_15_universal2.whl", hash = "sha256:869bdc161f0723ad0a30fabb830a71c0e9e824fc63e686cb708cc6033b95417e" },
-    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.1/uiucprescon_pymediaconch-0.1.1-cp313-cp313-macosx_10_15_x86_64.whl", hash = "sha256:747c5864c31c7fc95750a7c3ef9cc20abc1a361ece62cc25e496a799d0b1a7a5" },
-    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.1/uiucprescon_pymediaconch-0.1.1-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:00a9f1fd23655270700896e9750b5decf3a8afc4399537f10655d16a99f1358a" },
-    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.1/uiucprescon_pymediaconch-0.1.1-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:77e79a1c36be05b411163eee511dd1e1b9fcf63deb465768b6f680011c8a03e6" },
-    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.1/uiucprescon_pymediaconch-0.1.1-cp313-cp313-win_amd64.whl", hash = "sha256:30781e0872eaf3718c01c94371cce2a0e17aea3e389b7b8cf540cae421c8e90a" },
+    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.2/uiucprescon_pymediaconch-0.1.2-cp311-cp311-macosx_10_13_universal2.whl", hash = "sha256:859eec2159b8e11cda738a6a6b2cc620eb0d8627025a79e482d9fa18062d90af" },
+    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.2/uiucprescon_pymediaconch-0.1.2-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:b4bee9f2c9446d002572ef10cea9d0d8378278d8749866381283f6874a994df5" },
+    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.2/uiucprescon_pymediaconch-0.1.2-cp311-cp311-win_amd64.whl", hash = "sha256:748c668eb9ea98f645b5279a7407ab1e9c45d8dd664b35e748868b1ea80aacc3" },
+    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.2/uiucprescon_pymediaconch-0.1.2-cp312-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:0f57e0cca63aff6149178e13623ecc431cf5a6b624f6b1145cda290301b94d00" },
+    { url = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/packages/uiucprescon-pymediaconch/0.1.2/uiucprescon_pymediaconch-0.1.2-cp312-abi3-win_amd64.whl", hash = "sha256:0ad657639790f61fa45b7f45f90c77f9a2fb41578536e9d7f565161541098ae0" },
 ]
 
 [[package]]
@@ -1484,7 +1474,7 @@ requires-dist = [
     { name = "argcomplete" },
     { name = "pymediainfo" },
     { name = "tqdm" },
-    { name = "uiucprescon-pymediaconch", index = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/simple" },
+    { name = "uiucprescon-pymediaconch", specifier = ">=0.1.2", index = "https://nexus.library.illinois.edu/repository/uiuc_prescon_python/simple" },
 ]
 
 [package.metadata.requires-dev]
