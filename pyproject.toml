@@ -95,6 +95,7 @@ envlist = ["3.11", "3.12", "3.13"]
 description = "Run test under {base_python}"
 commands = [["{env_bin_dir}{/}pytest"]]
 dependency_groups = ['test']
+pass_env = ["TRIPWIRE_SAMPLE_FILES"]
 
 [tool.tox.env.type-checking]
 description = "Run mypy type checking"
