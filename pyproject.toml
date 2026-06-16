@@ -16,7 +16,7 @@ dependencies = [
     "argcomplete",
     "pymediainfo",
     "tqdm",
-    "uiucprescon.pymediaconch",
+    "uiucprescon.pymediaconch>=0.1.2",
 ]
 [project.urls]
 project = "https://github.com/UIUCLibrary/tripwire"
@@ -89,12 +89,13 @@ extend-select = [
 convention = "google"
 
 [tool.tox]
-envlist = ["3.11", "3.12", "3.13"]
+envlist = ["3.11", "3.12", "3.13", "3.14"]
 
 [tool.tox.env_run_base]
 description = "Run test under {base_python}"
 commands = [["{env_bin_dir}{/}pytest"]]
 dependency_groups = ['test']
+pass_env = ["TRIPWIRE_SAMPLE_FILES"]
 
 [tool.tox.env.type-checking]
 description = "Run mypy type checking"
