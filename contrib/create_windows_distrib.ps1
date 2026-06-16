@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param (
     [ValidateNotNullOrEmpty()]
-    [string]$PythonVersion = "3.13"
+    [string]$PythonVersion = "3.14"
 )
 
 function Get-Uv{

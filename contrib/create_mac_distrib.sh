@@ -7,7 +7,7 @@ FREEZE_SCRIPT=$(dirname "$0")/create_standalone.py
 DEFAULT_BUILD_VENV=$(mktemp -d)
 
 default_python_path=$(which python3)
-PYTHON_VERSION='3.13'
+PYTHON_VERSION='3.14'
 
 create_standalone(){
     uv_path=$1
