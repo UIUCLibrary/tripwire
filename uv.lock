@@ -1408,7 +1408,7 @@ wheels = [
 
 [[package]]
 name = "uiucprescon-tripwire"
-version = "0.3.8"
+version = "0.3.9.dev0"
 source = { editable = "." }
 dependencies = [
     { name = "argcomplete" },
