@@ -1,0 +1,37 @@
+# typed: true
+# frozen_string_literal: true
+
+class Tripwire < Formula
+  include Language::Python::Virtualenv
+
+  desc "{{ desc }}"
+  homepage "{{ homepage }}"
+  url "{{ url }}"
+  sha256 "{{ sha256 }}"
+  license "{{ license }}"
+  head "{{ git_info['head'] }}", branch: "{{ git_info['branch'] }}"
+{%- if depends_on %}
+{% for depend in depends_on %}
+  depends_on "{{ depend['dependency'] }}"{% if depend['dependency_type'] == DependencyType.BUILD %} => :build{% elif depend['dependency_type'] == DependencyType.TEST %}=> :test{% endif -%}
+{%- endfor -%}
+{% endif %}
+{%- if resources %}
+{% for resource in resources %}
+  resource "{{ resource.name }}" do
+    url "{{ resource.url }}"
+    sha256 "{{ resource.sha256 }}"
+  end
+{% endfor -%}
+{% else %}
+{% endif %}
+  def install
+    ENV["CONAN_HOME"] = buildpath
+    system "conan", "profile", "detect"
+    virtualenv_install_with_resources
+  end
+
+  test do
+    system bin/"tripwire", "--help"
+    system bin/"tripwire", "--version"
+  end
+end

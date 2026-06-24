@@ -877,7 +877,13 @@ pipeline {
                     }
                 }
                 stage('GitHub Release'){
-                    agent any
+                    agent{
+                        docker{
+                            image 'ghcr.io/astral-sh/uv:debian'
+                            label 'docker && linux'
+                            args "--label=purpose=ci --label \"JOB_NAME=\$JOB_NAME\" --label \"absoluteUrl=${currentBuild.absoluteUrl}\" --label \"BUILD_NUMBER=${currentBuild.number}\" --mount source=uv_python_cache_dir,target=/tmp/uvpython"
+                        }
+                    }
                     when{
                         beforeInput true
                         beforeAgent true
@@ -930,8 +936,9 @@ pipeline {
                                     unstash 'PYTHON_PACKAGES'
                                     def releaseData = readJSON text: createReleaseResponse.content
                                     findFiles(glob: 'dist/*').each{
+                                        def outputURL = "${releaseData.upload_url.replace('{?name,label}', '')}?name=${it.name}"
                                         def uploadResponse = httpRequest(
-                                            url: "${releaseData.upload_url.replace('{?name,label}', '')}?name=${it.name}",
+                                            url: "${outputURL}",
                                             httpMode: 'POST',
                                             uploadFile: it.path,
                                             customHeaders: [[name: 'Authorization', value: "token ${GITHUB_TOKEN}"]],
@@ -942,7 +949,17 @@ pipeline {
                                         } else {
                                             error "Failed to upload file: ${uploadResponse.status} - ${uploadResponse.content}"
                                         }
+                                        if(it.name.contains(".tar.gz") {
+                                            sh(
+                                                label: 'Creating homebrew formula',
+                                                script: """uv export --format pylock.toml --no-dev > ${WORKSPACE_TMP}/pylock.toml
+                                                           mkdir -p dist/homebrew_formula/
+                                                           uv run contrib/create_homebrew_formula.py ${it.path} ${WORKSPACE_TMP}/pylock.toml ${outputURL} > dist/homebrew_formula/tripwire.rb
+                                                        """
+                                            )
+                                        }
                                     }
+                                    archiveArtifacts artifacts: 'dist/homebrew_formula/*'
                                 }
                             }
                         }
