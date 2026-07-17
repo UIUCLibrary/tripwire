@@ -607,14 +607,14 @@ pipeline {
                     }
                     parallel{
                         stage('Mac Application Bundle x86_64'){
+                            when{
+                                equals expected: true, actual: params.PACKAGE_MAC_OS_STANDALONE_X86_64
+                                beforeAgent true
+                            }
                             stages{
                                 stage('Package'){
                                     agent{
                                         label 'mac && python3.12 && x86_64'
-                                    }
-                                    when{
-                                        equals expected: true, actual: params.PACKAGE_MAC_OS_STANDALONE_X86_64
-                                        beforeAgent true
                                     }
                                     steps{
                                         sh './contrib/create_mac_distrib.sh'
