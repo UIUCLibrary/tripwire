@@ -173,7 +173,7 @@ def testPackages(params){
                                             'UV_CACHE_DIR=/tmp/uvcache',
                                             "TRIPWIRE_SAMPLE_FILES=${WORKSPACE}/samples",
                                         ]){
-                                            sh "uv python install cpython-${entry.PYTHON_VERSION}"
+                                            sh(label: 'Installing required Python version if not already installed', script: "uv python find cpython-${entry.PYTHON_VERSION} --quiet 2>/dev/null || uv python install cpython-${entry.PYTHON_VERSION}")
                                             unstash 'SAMPLE_FILES'
                                             def attempt = 0
                                             retry(2){
@@ -197,8 +197,9 @@ def testPackages(params){
                                         ]){
                                             bat """python -m venv venv
                                                    .\\venv\\Scripts\\pip install --disable-pip-version-check uv
-                                                   .\\venv\\Scripts\\uv python install cpython-${entry.PYTHON_VERSION}
+                                                   .\\venv\\Scripts\\uv python update-shell
                                                 """
+                                            bat(label: 'Installing required Python version if not already installed', script: ".\\venv\\Scripts\\uv python find cpython-${entry.PYTHON_VERSION} --quiet 2>nul || .\\venv\\Scripts\\uv python install cpython-${entry.PYTHON_VERSION}")
                                             unstash 'SAMPLE_FILES'
                                             def attempt = 0
                                             retry(2){
@@ -217,8 +218,8 @@ def testPackages(params){
                                 if(isUnix()){
                                     sh """python3 -m venv venv
                                           ./venv/bin/pip install --disable-pip-version-check uv
-                                          ./venv/bin/uv python install cpython-${entry.PYTHON_VERSION}
                                        """
+                                    sh(label: 'Installing required Python version if not already installed', script: "./venv/bin/uv python find cpython-${entry.PYTHON_VERSION} --quiet 2>/dev/null || ./venv/bin/uv python install cpython-${entry.PYTHON_VERSION}")
                                     withEnv(["TOX_UV_PATH=${env.WORKSPACE}/venv/bin/uv", "TRIPWIRE_SAMPLE_FILES=${WORKSPACE}/samples"]){
                                         unstash 'SAMPLE_FILES'
                                         def attempt = 0
@@ -235,8 +236,9 @@ def testPackages(params){
                                 } else {
                                     bat """python -m venv venv
                                            .\\venv\\Scripts\\pip install --disable-pip-version-check uv
-                                           .\\venv\\Scripts\\uv python install cpython-${entry.PYTHON_VERSION}
+                                           .\\venv\\Scripts\\uv python update-shell
                                         """
+                                    bat(label: 'Installing required Python version if not already installed', script: ".\\venv\\Scripts\\uv python find cpython-${entry.PYTHON_VERSION} --quiet 2>nul || .\\venv\\Scripts\\uv python install cpython-${entry.PYTHON_VERSION}")
                                     withEnv(["TOX_UV_PATH=${env.WORKSPACE}\\venv\\Scripts\\uv.exe", "TRIPWIRE_SAMPLE_FILES=${WORKSPACE}/samples"]){
                                         unstash 'SAMPLE_FILES'
                                         def attempt = 0
