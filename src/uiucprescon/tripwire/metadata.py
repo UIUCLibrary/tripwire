@@ -24,12 +24,14 @@ from typing import (
     Optional,
     List,
     Set,
+    TextIO,
     TypedDict,
     Literal,
 )
 import pathlib
-import pymediainfo
+from xml.etree import ElementTree as ET
 
+import pymediainfo
 from uiucprescon.pymediaconch import mediaconch
 
 __all__ = ["show_metadata"]
@@ -350,3 +352,31 @@ def validate_metadata(
     logger.info(report_builder.build_report())
 
     return result.valid
+
+
+def is_empty_xml_file(fp: TextIO) -> bool:
+    starting = fp.tell()
+    try:
+        fp.seek(0)
+        all_data = fp.read()
+        return all_data.strip() == ""
+    finally:
+        fp.seek(starting)
+
+
+def find_mediaconch_policy_file_issues(fp: TextIO) -> Set[str]:
+    starting = fp.tell()
+    if is_empty_xml_file(fp):
+        return {"empty xml file"}
+    issues = set()
+    try:
+        tree = ET.parse(fp)
+        root = tree.getroot()
+        if root.tag != "policy":
+            issues.add("not a valid policy file")
+            issues.add("missing expected policy element")
+    except ET.ParseError:
+        issues.add("not a valid policy file")
+    finally:
+        fp.seek(starting)
+    return issues

@@ -1,3 +1,4 @@
+import os
 import pathlib
 from unittest.mock import Mock, MagicMock, ANY
 from uiucprescon.tripwire import validation
@@ -42,8 +43,9 @@ def test_get_file_hash(monkeypatch):
     assert hashing_strategy.called
 
 
-def test_validate_directory_checksums_command():
+def test_validate_directory_checksums_command(monkeypatch):
     compare_checksum_to_target_strategy = Mock(return_value=None)
+    monkeypatch.setattr(os.path, "exists", lambda x: True)
     validation.validate_directory_checksums_command(
         path=pathlib.Path("dummy"),
         locate_checksum_strategy=lambda _: [
@@ -128,12 +130,12 @@ def test_create_checksum_validation_report_no_errors():
         ([],"Checksum matched"),
     ]
 )
-def test_validate_directory_checksums_command_failed(caplog, comparison_results, expected_message_in_log):
+def test_validate_directory_checksums_command_failed(monkeypatch, caplog, comparison_results, expected_message_in_log):
     path = pathlib.Path("dummy")
     locate_checksum_strategy = Mock(return_value=[path / "dummy.mp3.md5"])
     read_checksums_strategy = Mock(return_value="123344")
     compare_checksum_to_target_strategy = Mock(return_value=comparison_results)
-
+    monkeypatch.setattr(os.path, "exists", lambda x: True)
     validation.validate_directory_checksums_command(
         path=path,
         locate_checksum_strategy=locate_checksum_strategy,

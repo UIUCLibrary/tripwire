@@ -63,7 +63,7 @@ def manifest_check_command(
     args: argparse.Namespace,
     print_usage_function: Callable[[Optional[Any]], None],
 ) -> None:
-    """Run manifest check command."""
+    """Run the manifest check command."""
     try:
         manifest_check.locate_manifest_files(
             manifest_tsv=args.manifest, search_path=args.search_path

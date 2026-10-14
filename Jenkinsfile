@@ -27,6 +27,31 @@ def getPypiConfig() {
     }
 }
 
+def testMacStandalone(path){
+
+    script{
+        def cliApplication = findFiles(glob: "${path}/**/tripwire")[0].path
+        sh "${cliApplication} --help"
+        sh "${cliApplication} --version"
+        def guiApplication = findFiles(glob: "${path}/**/tripwire-gui")[0]
+        sh "${guiApplication} --help"
+        sh "${guiApplication} --version"
+        sh "${guiApplication} info"
+    }
+}
+
+def packageWindows(){
+    timeout(15){
+        unstash 'PYTHON_PACKAGES'
+        powershell(
+            script: """New-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
+                       powershell contrib/create_windows_distrib.ps1 -Wheel ${findFiles(glob: 'dist/*.whl')[0]} -PythonVersion 3.14
+                    """
+       )
+    }
+
+}
+
 def getDefaultStandalonePath(){
     node(){
         checkout scm
@@ -267,13 +292,37 @@ def testPackages(params){
         ]
     )
 }
-
+def testToxLinux(toxEnv){
+    def version = toxEnv.replaceAll(/[a-zA-Z]+.py(\d)(\d+)/, '$1.$2')
+    node('docker && linux && x86_64'){
+        try{
+            checkout scm
+            docker.image('ghcr.io/astral-sh/uv:debian').inside(
+                "--label=purpose=ci --label \"JOB_NAME=\$JOB_NAME\" --label \"absoluteUrl=${currentBuild.absoluteUrl}\" --label \"BUILD_NUMBER=${currentBuild.number}\" --mount source=python-tmp-tripwire,target=/tmp --tmpfs /.local/share:exec --tmpfs /.local/bin:exec --mount type=tmpfs,dst=/.local --tmpfs /tmp_data:exec -e UV_PROJECT_ENVIRONMENT=/tmp_data/.venv --tmpfs /myhome:exec -e HOME=/myhome"
+            ){
+                retry(3){
+                    withEnv([
+//                     "UV_CONFIG_FILE=${createUnixUvConfig()}"
+                    ]){
+                        sh(label: 'Installing required Python version if not already installed', script: "uv python find cpython-${version} --quiet 2>/dev/null || uv python install cpython-${version}")
+                        sh( label: 'Running Tox',
+                            script: "uv run --managed-python --only-group=tox-uv --frozen tox run -e ${toxEnv} --runner uv-venv-lock-runner --workdir /tmp_data/.tox"
+                            )
+                    }
+                }
+            }
+        } finally{
+            sh "${tool(name: 'Default', type: 'git')} clean -dfx"
+        }
+    }
+}
 pipeline {
     agent none
     parameters{
         booleanParam(name: 'RUN_CHECKS', defaultValue: true, description: 'Run checks on code')
         booleanParam(name: 'USE_SONARQUBE', defaultValue: true, description: 'Send data test data to SonarQube')
         credentials(name: 'SONARCLOUD_TOKEN', credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl', defaultValue: 'sonarcloud_token', required: false)
+        booleanParam(name: 'TEST_RUN_TOX', defaultValue: false, description: 'Run Tox Tests')
         booleanParam(name: 'BUILD_PACKAGES', defaultValue: false, description: 'Build Python packages')
         booleanParam(name: 'TEST_PACKAGES', defaultValue: false, description: 'Test packages')
         booleanParam(name: 'INCLUDE_LINUX-X86_64', defaultValue: true, description: 'Include x86_64 architecture for Linux')
@@ -335,7 +384,7 @@ pipeline {
                             steps{
                                 sh(
                                     label: 'Create virtual environment with packaging in development mode',
-                                    script: 'uv sync --frozen --group ci'
+                                    script: 'uv sync --frozen --group ci --extra gui'
                                )
                             }
                         }
@@ -534,6 +583,139 @@ pipeline {
                         }
                     }
                 }
+                stage('Tox'){
+                    when {
+                       equals expected: true, actual: params.TEST_RUN_TOX
+                    }
+                    parallel{
+                        stage('Linux'){
+                            environment{
+                                PIP_CACHE_DIR='/tmp/pipcache'
+                                UV_TOOL_DIR='/tmp/uvtools'
+                                UV_PYTHON_CACHE_DIR='/tmp/uvpython'
+                                UV_CACHE_DIR='/tmp/uvcache'
+                            }
+                            steps{
+                                script{
+                                    def envs = []
+                                    node('docker && linux'){
+                                        try{
+                                            def attempt = 0
+                                            def MAX_ATTEMPTS = 2
+                                            retry(MAX_ATTEMPTS){
+                                                attempt += 1
+                                                try{
+                                                    checkout scm
+                                                } catch(e){
+                                                    if (attempt < MAX_ATTEMPTS) {
+                                                        sleep 5
+                                                    }
+                                                    throw e
+                                                }
+                                            }
+                                            docker.image('ghcr.io/astral-sh/uv:debian').inside("--label=purpose=ci --label \"JOB_NAME=\$JOB_NAME\" --label \"absoluteUrl=${currentBuild.absoluteUrl}\" --label \"BUILD_NUMBER=${currentBuild.number}\" --mount source=python-tmp-tripwire,target=/tmp --tmpfs /tmp_data:exec -e UV_PROJECT_ENVIRONMENT=/tmp_data/.venv"){
+                                                envs = sh(
+                                                    label: 'Get tox environments',
+                                                    script: 'uv run --quiet --frozen --only-group=tox tox list -d --no-desc --workdir /tmp_data/.tox',
+                                                    returnStdout: true,
+                                                ).trim().split('\n')
+                                            }
+                                        } finally{
+                                            sh "${tool(name: 'Default', type: 'git')} clean -dfx"
+                                        }
+                                    }
+                                    parallel(
+                                        envs.collectEntries{toxEnv ->
+                                            [
+                                                "Tox Environment: ${toxEnv}",
+                                                {
+                                                    testToxLinux(toxEnv)
+                                                }
+                                            ]
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                        stage('Windows'){
+                            when{
+                                expression {return nodesByLabel('windows && docker && x86').size() > 0}
+                            }
+                            environment{
+                                PIP_CACHE_DIR='C:\\Users\\ContainerUser\\Documents\\cache\\pipcache'
+                                UV_TOOL_DIR='C:\\Users\\ContainerUser\\Documents\\cache\\uvtools'
+                                UV_PYTHON_CACHE_DIR='C:\\Users\\ContainerUser\\Documents\\cache\\uvpython'
+                                UV_CACHE_DIR='C:\\Users\\ContainerUser\\Documents\\cache\\uvcache'
+                            }
+                            steps{
+                                script{
+                                    def envs = []
+                                    node('docker && windows'){
+                                        try{
+                                            checkout scm
+                                            docker.image('python')
+                                                .inside("--mount type=volume,source=uv_python_cache_dir,target=${env.UV_PYTHON_CACHE_DIR}"
+                                                     + " --mount type=volume,source=pipcache,target=${env.PIP_CACHE_DIR}"
+                                                     + " --mount type=volume,source=uv_cache_dir,target=${env.UV_CACHE_DIR}"
+                                                ){
+                                                bat(script: 'python -m pip install --disable-pip-version-check uv && uv python update-shell')
+                                                envs = bat(
+                                                    label: 'Get tox environments',
+                                                    script: '@uv run --quiet --only-group=tox tox list -d --no-desc',
+                                                    returnStdout: true,
+                                                ).trim().split('\r\n')
+                                            }
+                                        } finally{
+                                            bat "${tool(name: 'Default', type: 'git')} clean -dfx"
+                                        }
+                                    }
+                                    parallel(
+                                        envs.collectEntries{toxEnv ->
+                                            def version = toxEnv.replaceAll(/[a-zA-Z]+.py(\d)(\d+)/, '$1.$2')
+                                            [
+                                                "Tox Environment: ${toxEnv}",
+                                                {
+                                                    node('docker && windows'){
+                                                        retry(3){
+                                                            checkout scm
+                                                        }
+                                                        try{
+                                                            docker.image('python')
+                                                                .inside("\
+                                                                    --label=purpose=ci --label \"JOB_NAME=\$JOB_NAME\" --label \"absoluteUrl=${currentBuild.absoluteUrl}\" --label \"BUILD_NUMBER=${currentBuild.number}\" \
+                                                                    --mount type=volume,source=uv_python_cache_dir,target=${env.UV_PYTHON_CACHE_DIR} \
+                                                                    --mount type=volume,source=pipcache,target=${env.PIP_CACHE_DIR} \
+                                                                    --mount type=volume,source=uv_cache_dir,target=${env.UV_CACHE_DIR} \
+                                                                    "
+                                                                ){
+                                                                retry(3){
+                                                                    bat(label: 'Install uv',
+                                                                        script: '''python -m pip install --disable-pip-version-check uv
+                                                                                   uv python update-shell
+                                                                                '''
+                                                                    )
+                                                                }
+
+                                                                bat(label: 'Installing required Python version if not already installed', script: "uv python find cpython-${version} --quiet 2>nul || uv python install cpython-${version}")
+                                                                retry(3){
+                                                                    bat(label: 'Running Tox',
+                                                                        script: "uv run --only-group=tox-uv --frozen tox run -e ${toxEnv} --runner uv-venv-lock-runner"
+                                                                    )
+                                                                }
+                                                            }
+                                                        } finally{
+                                                            bat "${tool(name: 'Default', type: 'git')} clean -dfx"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
         stage('Package'){
@@ -547,9 +729,6 @@ pipeline {
             }
             stages{
                 stage('Python Packages'){
-                    when{
-                        equals expected: true, actual: params.BUILD_PACKAGES
-                    }
                     stages{
                         stage('Create Python Packages'){
                             environment{
@@ -619,7 +798,8 @@ pipeline {
                                         label 'mac && python3.12 && x86_64'
                                     }
                                     steps{
-                                        sh './contrib/create_mac_distrib.sh'
+                                        unstash 'PYTHON_PACKAGES'
+                                        sh "./contrib/create_mac_distrib.sh ${findFiles(glob: 'dist/*.whl')[0]}"
                                         stash includes: 'dist/*.tar.gz', name: 'APPLE_APPLICATION_X86_64'
                                         archiveArtifacts artifacts: 'dist/*.tar.gz', fingerprint: true
                                     }
@@ -648,11 +828,7 @@ pipeline {
                                     steps{
                                         unstash 'APPLE_APPLICATION_X86_64'
                                         untar(file: "${findFiles(glob: 'dist/*.tar.gz')[0]}", dir: 'dist/out')
-                                        script{
-                                            def application = findFiles(glob: 'dist/out/**/tripwire')[0].path
-                                            sh "${application} --help"
-                                            sh "${application} --version"
-                                        }
+                                        testMacStandalone('dist/out')
                                     }
                                     post{
                                         cleanup{
@@ -678,7 +854,8 @@ pipeline {
                                         label 'mac && python3.12 && arm64'
                                     }
                                     steps{
-                                        sh './contrib/create_mac_distrib.sh'
+                                        unstash 'PYTHON_PACKAGES'
+                                        sh "./contrib/create_mac_distrib.sh ${findFiles(glob: 'dist/*.whl')[0]}"
                                         stash includes: 'dist/*.tar.gz', name: 'APPLE_APPLICATION_ARM64'
                                         archiveArtifacts artifacts: 'dist/*.tar.gz', fingerprint: true
                                     }
@@ -707,11 +884,7 @@ pipeline {
                                     steps{
                                         unstash 'APPLE_APPLICATION_ARM64'
                                         untar(file: "${findFiles(glob: 'dist/*.tar.gz')[0]}", dir: 'dist/out')
-                                        script{
-                                            def application = findFiles(glob: 'dist/out/**/tripwire')[0].path
-                                            sh "${application} --help"
-                                            sh "${application} --version"
-                                        }
+                                        testMacStandalone('dist/out')
                                     }
                                     post{
                                         cleanup{
@@ -744,11 +917,19 @@ pipeline {
                                         }
                                     }
                                     steps{
-                                        timeout(5){
-                                            bat(script: 'powershell contrib/create_windows_distrib.ps1')
-                                        }
+                                        packageWindows()
                                         stash includes: 'dist/*.zip', name: 'WINDOWS_APPLICATION_X86_64'
                                         archiveArtifacts artifacts: 'dist/*.zip', fingerprint: true
+//                                         timeout(15){
+//                                             unstash 'PYTHON_PACKAGES'
+//                                             powershell(
+//                                                 script: """New-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
+//                                                            powershell contrib/create_windows_distrib.ps1 -Wheel ${findFiles(glob: 'dist/*.whl')[0]} -PythonVersion 3.14
+//                                                         """
+//                                            )
+//                                         }
+//                                         stash includes: 'dist/*.zip', name: 'WINDOWS_APPLICATION_X86_64'
+//                                         archiveArtifacts artifacts: 'dist/*.zip', fingerprint: true
                                     }
                                     post{
                                         cleanup{
@@ -779,9 +960,13 @@ pipeline {
                                         unstash 'WINDOWS_APPLICATION_X86_64'
                                         unzip(zipFile: "${findFiles(glob: 'dist/*.zip')[0]}", dir: 'dist/tripwire')
                                         script{
-                                            def application = findFiles(glob: 'dist/tripwire/**/tripwire.exe')[0]
-                                            bat "${application} --help"
-                                            bat "${application} --version"
+                                            def cliApplication = findFiles(glob: 'dist/tripwire/**/tripwire.exe')[0]
+                                            bat "${cliApplication} --help"
+                                            bat "${cliApplication} --version"
+                                            def guiApplication = findFiles(glob: 'dist/tripwire/**/tripwire-gui.exe')[0]
+                                            bat "${guiApplication} --help"
+                                            bat "${guiApplication} --version"
+                                            bat "${guiApplication} info"
                                         }
                                     }
                                     post{
