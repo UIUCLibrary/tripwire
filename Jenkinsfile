@@ -728,257 +728,201 @@ pipeline {
                 }
             }
             stages{
-                stage('Python Packages'){
-                    stages{
-                        stage('Create Python Packages'){
-                            environment{
-                                PIP_CACHE_DIR='/tmp/pipcache'
-                                UV_CACHE_DIR='/tmp/uvcache'
-                                UV_TOOL_DIR='/tmp/uvtools'
-                                UV_PYTHON_CACHE_DIR='/tmp/uvpython'
-                            }
-                            agent {
-                                docker {
-                                    image 'ghcr.io/astral-sh/uv:debian'
-                                    label 'docker && linux'
-                                    args "--label=purpose=ci --label \"JOB_NAME=\$JOB_NAME\" --label \"absoluteUrl=${currentBuild.absoluteUrl}\" --label \"BUILD_NUMBER=${currentBuild.number}\" --mount source=tripwire_cache,target=/tmp"
-                                }
-                            }
-                            steps{
-                                sh(
-                                    label: 'Package',
-                                    script: '''uv export --format requirements-txt --frozen --no-emit-project --group dev > requirements-dev.txt
-                                               uv build --build-constraints=requirements-dev.txt
-                                            '''
-                                )
-                                stash includes: 'dist/*.whl,dist/*.tar.gz,dist/*.zip', name: 'PYTHON_PACKAGES'
-                            }
-                            post{
-                                always{
-                                    archiveArtifacts artifacts: 'dist/*.whl,dist/*.tar.gz,dist/*.zip', fingerprint: true
-                                }
-                                cleanup{
-                                    cleanWs(patterns: [
-                                            [pattern: 'venv/', type: 'INCLUDE'],
-                                            [pattern: '**/__pycache__/', type: 'INCLUDE'],
-                                    ])
-                                }
-                            }
+                stage('Create Python Packages'){
+                    environment{
+                        PIP_CACHE_DIR='/tmp/pipcache'
+                        UV_CACHE_DIR='/tmp/uvcache'
+                        UV_TOOL_DIR='/tmp/uvtools'
+                        UV_PYTHON_CACHE_DIR='/tmp/uvpython'
+                    }
+                    agent {
+                        docker {
+                            image 'ghcr.io/astral-sh/uv:debian'
+                            label 'docker && linux'
+                            args "--label=purpose=ci --label \"JOB_NAME=\$JOB_NAME\" --label \"absoluteUrl=${currentBuild.absoluteUrl}\" --label \"BUILD_NUMBER=${currentBuild.number}\" --mount source=tripwire_cache,target=/tmp"
                         }
-                        stage('Testing packages'){
-                            when{
-                                equals expected: true, actual: params.TEST_PACKAGES
-                            }
-                            steps{
-                                testPackages(params)
-                            }
+                    }
+                    steps{
+                        sh(
+                            label: 'Package',
+                            script: '''uv export --format requirements-txt --frozen --no-emit-project --group dev > requirements-dev.txt
+                                       uv build --build-constraints=requirements-dev.txt
+                                    '''
+                        )
+                        stash includes: 'dist/*.whl,dist/*.tar.gz,dist/*.zip', name: 'PYTHON_PACKAGES'
+                    }
+                    post{
+                        always{
+                            archiveArtifacts artifacts: 'dist/*.whl,dist/*.tar.gz,dist/*.zip', fingerprint: true
+                        }
+                        cleanup{
+                            cleanWs(patterns: [
+                                    [pattern: 'venv/', type: 'INCLUDE'],
+                                    [pattern: '**/__pycache__/', type: 'INCLUDE'],
+                            ])
                         }
                     }
                 }
-                stage('Standalone'){
-                    when{
-                        anyOf{
-                            equals expected: true, actual: params.PACKAGE_MAC_OS_STANDALONE_X86_64
-                            equals expected: true, actual: params.PACKAGE_MAC_OS_STANDALONE_ARM64
-                            equals expected: true, actual: params.PACKAGE_STANDALONE_WINDOWS_INSTALLER
-                        }
-                    }
-                    environment{
-                        UV_PYTHON_PREFERENCE='only-managed'
-                    }
+                stage('Building and Testing Packages and Applications'){
                     parallel{
-                        stage('Mac Application Bundle x86_64'){
-                            when{
-                                equals expected: true, actual: params.PACKAGE_MAC_OS_STANDALONE_X86_64
-                                beforeAgent true
-                            }
+                        stage('Python Packages'){
                             stages{
-                                stage('Package'){
-                                    agent{
-                                        label 'mac && python3.12 && x86_64'
+                                stage('Testing packages'){
+                                    when{
+                                        equals expected: true, actual: params.TEST_PACKAGES
                                     }
                                     steps{
-                                        unstash 'PYTHON_PACKAGES'
-                                        sh "./contrib/create_mac_distrib.sh ${findFiles(glob: 'dist/*.whl')[0]}"
-                                        stash includes: 'dist/*.tar.gz', name: 'APPLE_APPLICATION_X86_64'
-                                        archiveArtifacts artifacts: 'dist/*.tar.gz', fingerprint: true
-                                    }
-                                    post{
-                                        cleanup{
-                                            sh "${tool(name: 'Default', type: 'git')} clean -dfx"
-                                            cleanWs(
-                                                deleteDirs: true,
-                                                patterns: [
-                                                    [pattern: 'build/', type: 'INCLUDE'],
-                                                    [pattern: 'dist/', type: 'INCLUDE'],
-                                                    [pattern: '*.egg-info/', type: 'INCLUDE'],
-                                                    [pattern: '**/__pycache__/', type: 'INCLUDE'],
-                                                ]
-                                            )
-                                        }
-                                    }
-                                }
-                                stage('Test'){
-                                    agent{
-                                        label 'mac && x86_64'
-                                    }
-                                    options {
-                                        skipDefaultCheckout true
-                                    }
-                                    steps{
-                                        unstash 'APPLE_APPLICATION_X86_64'
-                                        untar(file: "${findFiles(glob: 'dist/*.tar.gz')[0]}", dir: 'dist/out')
-                                        testMacStandalone('dist/out')
-                                    }
-                                    post{
-                                        cleanup{
-                                           cleanWs(
-                                                 deleteDirs: true,
-                                                 patterns: [
-                                                     [pattern: 'dist/', type: 'INCLUDE'],
-                                                 ]
-                                             )
-                                        }
+                                        testPackages(params)
                                     }
                                 }
                             }
                         }
-                        stage('Mac Application Bundle arm64'){
+                        stage('Standalone'){
                             when{
-                                equals expected: true, actual: params.PACKAGE_MAC_OS_STANDALONE_ARM64
-                                beforeAgent true
-                            }
-                            stages{
-                                stage('Package'){
-                                    agent{
-                                        label 'mac && python3.12 && arm64'
-                                    }
-                                    steps{
-                                        unstash 'PYTHON_PACKAGES'
-                                        sh "./contrib/create_mac_distrib.sh ${findFiles(glob: 'dist/*.whl')[0]}"
-                                        stash includes: 'dist/*.tar.gz', name: 'APPLE_APPLICATION_ARM64'
-                                        archiveArtifacts artifacts: 'dist/*.tar.gz', fingerprint: true
-                                    }
-                                    post{
-                                        cleanup{
-                                            sh "${tool(name: 'Default', type: 'git')} clean -dfx"
-                                            cleanWs(
-                                                deleteDirs: true,
-                                                patterns: [
-                                                    [pattern: 'build/', type: 'INCLUDE'],
-                                                    [pattern: 'dist/', type: 'INCLUDE'],
-                                                    [pattern: '*.egg-info/', type: 'INCLUDE'],
-                                                    [pattern: '**/__pycache__/', type: 'INCLUDE'],
-                                                ]
-                                            )
-                                        }
-                                    }
-                                }
-                                stage('Test'){
-                                    agent{
-                                        label 'mac && arm64'
-                                    }
-                                    options {
-                                        skipDefaultCheckout true
-                                    }
-                                    steps{
-                                        unstash 'APPLE_APPLICATION_ARM64'
-                                        untar(file: "${findFiles(glob: 'dist/*.tar.gz')[0]}", dir: 'dist/out')
-                                        testMacStandalone('dist/out')
-                                    }
-                                    post{
-                                        cleanup{
-                                           cleanWs(
-                                                 deleteDirs: true,
-                                                 patterns: [
-                                                     [pattern: 'dist/', type: 'INCLUDE'],
-                                                 ]
-                                             )
-                                        }
-                                    }
+                                anyOf{
+                                    equals expected: true, actual: params.PACKAGE_MAC_OS_STANDALONE_X86_64
+                                    equals expected: true, actual: params.PACKAGE_MAC_OS_STANDALONE_ARM64
+                                    equals expected: true, actual: params.PACKAGE_STANDALONE_WINDOWS_INSTALLER
                                 }
                             }
-                        }
-                        stage('Windows Application'){
                             environment{
-                                UV_PYTHON_CACHE_DIR='C:\\Users\\ContainerUser\\Documents\\uvpython'
+                                UV_PYTHON_PREFERENCE='only-managed'
                             }
-                            when{
-                                equals expected: true, actual: params.PACKAGE_STANDALONE_WINDOWS_INSTALLER
-                                beforeAgent true
-                            }
-                            stages{
-                                stage('Package'){
-                                    agent{
-                                        docker{
-                                            image 'python'
-                                            label 'windows && docker && x86_64'
-                                            args "--label=purpose=ci --label \"JOB_NAME=\$JOB_NAME\" --label \"absoluteUrl=${currentBuild.absoluteUrl}\" --label \"BUILD_NUMBER=${currentBuild.number}\" --mount source=uv_python_cache_dir,target=C:\\Users\\ContainerUser\\Documents\\uvpython"
+                            steps{
+                                script{
+                                    parallel(
+                                        'Mac Application Bundle x86_64':{
+                                            if(!params.PACKAGE_MAC_OS_STANDALONE_X86_64){
+                                                Utils.markStageSkippedForConditional('Mac Application Bundle x86_64')
+                                            }
+                                            stage('Package'){
+                                                if(params.PACKAGE_MAC_OS_STANDALONE_X86_64){
+                                                    node('mac && python3.12 && x86_64'){
+                                                        checkout scm
+                                                        try{
+                                                            unstash 'PYTHON_PACKAGES'
+                                                            sh "./contrib/create_mac_distrib.sh ${findFiles(glob: 'dist/*.whl')[0]}"
+                                                            stash includes: 'dist/*.tar.gz', name: 'APPLE_APPLICATION_X86_64'
+                                                            archiveArtifacts artifacts: 'dist/*.tar.gz', fingerprint: true
+                                                        } finally{
+                                                            sh "${tool(name: 'Default', type: 'git')} clean -dfx"
+                                                        }
+                                                    }
+                                                } else {
+                                                    Utils.markStageSkippedForConditional('Package')
+                                                }
+                                            }
+                                            stage('Test'){
+                                                if(params.PACKAGE_MAC_OS_STANDALONE_X86_64){
+                                                    node('mac && x86_64'){
+                                                        checkout scm
+                                                        try{
+                                                            unstash 'APPLE_APPLICATION_X86_64'
+                                                            untar(file: "${findFiles(glob: 'dist/*.tar.gz')[0]}", dir: 'dist/out')
+                                                            testMacStandalone('dist/out')
+                                                        } finally{
+                                                            sh "${tool(name: 'Default', type: 'git')} clean -dfx"
+                                                        }
+                                                    }
+                                                } else {
+                                                    Utils.markStageSkippedForConditional('Test')
+                                                }
+                                            }
+                                        },
+                                        'Mac Application arm64':{
+                                            if (!params.PACKAGE_MAC_OS_STANDALONE_ARM64){
+                                                Utils.markStageSkippedForConditional('Mac Application arm64')
+                                            }
+                                            stage('Package'){
+                                                if (params.PACKAGE_MAC_OS_STANDALONE_ARM64){
+                                                    node('mac && python3.12 && arm64'){
+                                                        checkout scm
+                                                        try{
+                                                            unstash 'PYTHON_PACKAGES'
+                                                            sh "./contrib/create_mac_distrib.sh ${findFiles(glob: 'dist/*.whl')[0]}"
+                                                            stash includes: 'dist/*.tar.gz', name: 'APPLE_APPLICATION_ARM64'
+                                                            archiveArtifacts artifacts: 'dist/*.tar.gz', fingerprint: true
+                                                        } finally{
+                                                            sh "${tool(name: 'Default', type: 'git')} clean -dfx"
+                                                        }
+                                                    }
+                                                } else {
+                                                    Utils.markStageSkippedForConditional('Package')
+                                                }
+                                            }
+                                            stage('Test'){
+                                                if(params.PACKAGE_MAC_OS_STANDALONE_ARM64){
+                                                    node('mac && arm64'){
+                                                        try{
+                                                            checkout scm
+                                                            unstash 'APPLE_APPLICATION_ARM64'
+                                                            untar(file: "${findFiles(glob: 'dist/*.tar.gz')[0]}", dir: 'dist/out')
+                                                            testMacStandalone('dist/out')
+                                                        } finally{
+                                                            sh "${tool(name: 'Default', type: 'git')} clean -dfx"
+                                                        }
+                                                    }
+                                                } else {
+                                                    Utils.markStageSkippedForConditional('Test')
+                                                }
+                                            }
+                                        },
+                                        'Windows Application': {
+                                            if (!params.PACKAGE_STANDALONE_WINDOWS_INSTALLER) {
+                                                Utils.markStageSkippedForConditional('Windows Application')
+                                            }
+                                            stage('Package'){
+                                                if (params.PACKAGE_STANDALONE_WINDOWS_INSTALLER) {
+                                                    node('windows && docker && x86_64'){
+                                                        try{
+                                                            checkout scm
+                                                            docker.image('python').inside("--label=purpose=ci --label \"JOB_NAME=\$JOB_NAME\" --label \"absoluteUrl=${currentBuild.absoluteUrl}\" --label \"BUILD_NUMBER=${currentBuild.number}\" --mount source=uv_python_cache_dir,target=C:\\Users\\ContainerUser\\Documents\\uvpython"){
+                                                                packageWindows()
+                                                                stash includes: 'dist/*.zip', name: 'WINDOWS_APPLICATION_X86_64'
+                                                                archiveArtifacts artifacts: 'dist/*.zip', fingerprint: true
+                                                            }
+                                                        } finally{
+                                                            if (fileExists('.git')){
+                                                                bat "${tool(name: 'Default', type: 'git')} clean -dfx"
+                                                            }
+                                                        }
+                                                    }
+                                                } else {
+                                                    Utils.markStageSkippedForConditional('Package')
+                                                }
+                                            }
+                                            stage('Test package'){
+                                                if (params.PACKAGE_STANDALONE_WINDOWS_INSTALLER) {
+                                                    node('windows && docker && x86_64'){
+                                                        checkout scm
+                                                        try{
+                                                            unstash 'WINDOWS_APPLICATION_X86_64'
+                                                            def version = readTOML( file: 'pyproject.toml')['project'].version
+                                                            docker.image('mcr.microsoft.com/windows/servercore:ltsc2025').inside("--label=purpose=ci --label \"JOB_NAME=\$JOB_NAME\" --label \"absoluteUrl=${currentBuild.absoluteUrl}\" --label \"BUILD_NUMBER=${currentBuild.number}\""){
+                                                                timeout(10){
+                                                                    unstash 'WINDOWS_APPLICATION_X86_64'
+                                                                    unzip(zipFile: "${findFiles(glob: 'dist/*.zip')[0]}", dir: 'dist/tripwire')
+                                                                    script{
+                                                                        def cliApplication = findFiles(glob: 'dist/tripwire/**/tripwire.exe')[0]
+                                                                        bat "${cliApplication} --help"
+                                                                        bat "${cliApplication} --version"
+                                                                        def guiApplication = findFiles(glob: 'dist/tripwire/**/tripwire-gui.exe')[0]
+                                                                        bat "${guiApplication} --help"
+                                                                        bat "${guiApplication} --version"
+                                                                        bat "${guiApplication} info"
+                                                                    }
+                                                                }
+                                                            }
+                                                        } finally{
+                                                            bat "${tool(name: 'Default', type: 'git')} clean -dfx"
+                                                        }
+                                                    }
+                                                } else {
+                                                    Utils.markStageSkippedForConditional('Test package')
+                                                }
+                                            }
                                         }
-                                    }
-                                    steps{
-                                        packageWindows()
-                                        stash includes: 'dist/*.zip', name: 'WINDOWS_APPLICATION_X86_64'
-                                        archiveArtifacts artifacts: 'dist/*.zip', fingerprint: true
-//                                         timeout(15){
-//                                             unstash 'PYTHON_PACKAGES'
-//                                             powershell(
-//                                                 script: """New-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
-//                                                            powershell contrib/create_windows_distrib.ps1 -Wheel ${findFiles(glob: 'dist/*.whl')[0]} -PythonVersion 3.14
-//                                                         """
-//                                            )
-//                                         }
-//                                         stash includes: 'dist/*.zip', name: 'WINDOWS_APPLICATION_X86_64'
-//                                         archiveArtifacts artifacts: 'dist/*.zip', fingerprint: true
-                                    }
-                                    post{
-                                        cleanup{
-                                            cleanWs(
-                                                deleteDirs: true,
-                                                patterns: [
-                                                    [pattern: 'build/', type: 'INCLUDE'],
-                                                    [pattern: 'dist/', type: 'INCLUDE'],
-                                                    [pattern: '*.egg-info/', type: 'INCLUDE'],
-                                                    [pattern: '**/__pycache__/', type: 'INCLUDE'],
-                                                ]
-                                            )
-                                        }
-                                    }
-                                }
-                                stage('Test package'){
-                                    agent {
-                                        docker {
-                                            image 'mcr.microsoft.com/windows/servercore:ltsc2025'
-                                            label 'windows && docker && x86_64'
-                                            args "--label=purpose=ci --label \"JOB_NAME=\$JOB_NAME\" --label \"absoluteUrl=${currentBuild.absoluteUrl}\" --label \"BUILD_NUMBER=${currentBuild.number}\""
-                                        }
-                                    }
-                                    options {
-                                        skipDefaultCheckout true
-                                    }
-                                    steps{
-                                        unstash 'WINDOWS_APPLICATION_X86_64'
-                                        unzip(zipFile: "${findFiles(glob: 'dist/*.zip')[0]}", dir: 'dist/tripwire')
-                                        script{
-                                            def cliApplication = findFiles(glob: 'dist/tripwire/**/tripwire.exe')[0]
-                                            bat "${cliApplication} --help"
-                                            bat "${cliApplication} --version"
-                                            def guiApplication = findFiles(glob: 'dist/tripwire/**/tripwire-gui.exe')[0]
-                                            bat "${guiApplication} --help"
-                                            bat "${guiApplication} --version"
-                                            bat "${guiApplication} info"
-                                        }
-                                    }
-                                    post{
-                                        cleanup{
-                                            cleanWs(
-                                                deleteDirs: true,
-                                                patterns: [
-                                                    [pattern: 'dist/', type: 'INCLUDE'],
-                                                ]
-                                            )
-                                        }
-                                    }
+                                    )
                                 }
                             }
                         }
