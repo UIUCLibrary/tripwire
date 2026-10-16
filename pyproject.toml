@@ -18,12 +18,23 @@ dependencies = [
     "tqdm",
     "uiucprescon.pymediaconch>=0.1.2",
 ]
+
+[project.optional-dependencies]
+speedwagon = ["speedwagon >= 0.4.0b27"]
+gui = ["speedwagon[qt]"]
+
 [project.urls]
 project = "https://github.com/UIUCLibrary/tripwire"
 documentation = "https://uiuclibrary.github.io/tripwire/"
 
 [project.scripts]
 tripwire = "uiucprescon.tripwire.main:main"
+
+[project.gui-scripts]
+tripwire-gui = "uiucprescon.tripwire.gui.main:main"
+
+[project.entry-points.'speedwagon.plugins']
+tripwire_workflows = 'uiucprescon.tripwire.speedwagon_plugin.plugin'
 
 [dependency-groups]
 test = ["pytest>7"]
@@ -55,8 +66,12 @@ requires = ["setuptools>=77.0.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["uiucprescon.tripwire"]
-package-dir = {"" = "src"}
+packages = [
+    "uiucprescon.tripwire",
+    "uiucprescon.tripwire.gui",
+    "uiucprescon.tripwire.speedwagon_plugin",
+]
+package-dir = {"uiucprescon.tripwire" = "src/uiucprescon/tripwire"}
 zip-safe = true
 
 [tool.commitizen]
@@ -89,12 +104,24 @@ extend-select = [
 convention = "google"
 
 [tool.tox]
-envlist = ["3.11", "3.12", "3.13", "3.14"]
-
+envlist = [
+  { product = [["base", "speedwagon"] , { prefix = "py3", start = 11, stop=14 }] },
+]
 [tool.tox.env_run_base]
-description = "Run test under {base_python}"
+description = "Run test under {base_python} without speedwagon"
 commands = [["{env_bin_dir}{/}pytest"]]
 dependency_groups = ['test']
+pass_env = ["TRIPWIRE_SAMPLE_FILES"]
+
+
+[tool.tox.env_base.speedwagon]
+factors = [
+    { prefix = "py3", start = 11 },
+]
+description = "Run test under {base_python} with speedwagon plugins"
+commands = [["{env_bin_dir}{/}pytest"]]
+dependency_groups = ['test']
+extras = ["speedwagon"]
 pass_env = ["TRIPWIRE_SAMPLE_FILES"]
 
 [tool.tox.env.type-checking]
@@ -138,7 +165,6 @@ commands = [
 [tool.mypy]
 mypy_path = "src"
 
-
 [[tool.uv.index]]
 url = "https://pypi.org/simple"
 default = true
@@ -151,3 +177,4 @@ explicit = true
 
 [tool.uv.sources]
 "uiucprescon.pymediaconch" = {index="uiuc_prescon_python"}
+speedwagon = {index = "uiuc_prescon_python"}

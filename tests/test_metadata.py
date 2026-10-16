@@ -1,10 +1,10 @@
+import io
 import json
 import logging
 import pathlib
 from unittest.mock import Mock, patch
 
 import pytest
-from pygments.lexers import wowtoc
 
 from uiucprescon.tripwire import metadata as metadata_module
 
@@ -316,3 +316,18 @@ class TestValidationReportBuilder:
         assert "No issues found." in report, (
             f"Report should indicate no issues. Got:\n{report}"
         )
+@pytest.mark.parametrize(
+    "xml_content, expected_issues",
+    [
+        ("", ["empty xml file"]),
+        ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><policy></policy>", []),
+        ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", ["not a valid policy file"]),
+        ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><somethingelse></somethingelse>", ["not a valid policy file"]),
+    ]
+)
+def test_find_mediaconch_policy_file_issues(xml_content, expected_issues):
+    with io.StringIO(xml_content) as fp:
+        issues = metadata_module.find_mediaconch_policy_file_issues(fp)
+        assert all(
+            [(issue in issues) for issue in expected_issues]
+        ), f"expecting to have {expected_issues}. Actual: {issues}"

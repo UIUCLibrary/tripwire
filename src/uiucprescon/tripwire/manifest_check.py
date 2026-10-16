@@ -397,7 +397,6 @@ def locate_manifest_files(
         list_of_unexpected_files = [
             f"* {f.relative_to(search_path)}" for f in sorted(unexpected_files)
         ]
-        print()
         logger.info(
             "Files found that were not included in manifest: \n%s",
             "\n".join(list_of_unexpected_files),

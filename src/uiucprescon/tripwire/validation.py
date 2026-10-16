@@ -275,6 +275,11 @@ def validate_directory_checksums_command(
             len(checksum_files),
             target_file.relative_to(path),
         )
+        if not os.path.exists(target_file):
+            message = f'Expected file "{target_file.relative_to(path)}" - Failed: File does not exist'
+            logger.error(message)
+            errors.append(message)
+            continue
         issues = compare_checksum_to_target_strategy(
             expected_hash_value, target_file
         )
