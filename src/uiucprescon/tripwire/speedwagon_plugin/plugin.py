@@ -3,7 +3,7 @@
 from typing import Dict, Type, Any
 
 import speedwagon.workflow
-from uiucprescon.tripwire.speedwagon_workflows import workflows
+from uiucprescon.tripwire.speedwagon_plugin import workflows
 
 
 @speedwagon.hookimpl

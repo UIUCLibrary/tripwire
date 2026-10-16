@@ -3,7 +3,7 @@ from unittest.mock import Mock, MagicMock
 import pytest
 speedwagon =  pytest.importorskip("speedwagon")
 import speedwagon.tasks
-from uiucprescon.tripwire.speedwagon_workflows import workflows as tripwire_workflows
+from uiucprescon.tripwire.speedwagon_plugin import workflows as tripwire_workflows
 
 
 class TestMediaConchValidateGlobString:

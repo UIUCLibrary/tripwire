@@ -34,7 +34,7 @@ tripwire = "uiucprescon.tripwire.main:main"
 tripwire-gui = "uiucprescon.tripwire.gui.main:main"
 
 [project.entry-points.'speedwagon.plugins']
-tripwire_workflows = 'uiucprescon.tripwire.gui.speedwagon_plugin'
+tripwire_workflows = 'uiucprescon.tripwire.speedwagon_plugin.plugin'
 
 [dependency-groups]
 test = ["pytest>7"]
@@ -69,7 +69,7 @@ build-backend = "setuptools.build_meta"
 packages = [
     "uiucprescon.tripwire",
     "uiucprescon.tripwire.gui",
-    "uiucprescon.tripwire.speedwagon_workflows",
+    "uiucprescon.tripwire.speedwagon_plugin",
 ]
 package-dir = {"uiucprescon.tripwire" = "src/uiucprescon/tripwire"}
 zip-safe = true

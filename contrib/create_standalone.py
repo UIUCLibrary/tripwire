@@ -122,7 +122,7 @@ SPECS_TEMPLATE_CLI = """
 
 
 def generate_cli_spec_section(
-    path, script_name, entry_points: typing.List[str], var_suffix
+    script_name, entry_points: typing.List[str], var_suffix, paths=None
 ):
     """Generate pyinstaller cli target section of specs file."""
     pyz_variable_name = f"pyz_cli_{var_suffix}"
@@ -132,7 +132,7 @@ def generate_cli_spec_section(
         "hooks_path": os.path.abspath(
             f"{pathlib.Path(__file__).parent / 'hooks'}",
         ),
-        "pathex": [path],
+        "pathex": paths if paths is not None else [],
         "name": script_name,
         "cli_entry_points": entry_points,
         "analysis_var": analysis_variable_name,
@@ -184,7 +184,7 @@ SPECS_TEMPLATE_GUI = """
 
 
 def generate_gui_spec_section(
-    path, script_name, entry_points: typing.List[str], var_suffix
+    script_name, entry_points: typing.List[str], var_suffix, paths=None
 ):
     """Generate pyinstaller gui target section of specs file."""
     pyz_variable_name = f"pyz_gui_{var_suffix}"
@@ -194,7 +194,7 @@ def generate_gui_spec_section(
         "hooks_path": os.path.abspath(
             f"{pathlib.Path(__file__).parent / 'hooks'}",
         ),
-        "pathex": [path],
+        "pathex": paths if paths is not None else [],
         "name": script_name,
         "gui_entry_points": entry_points,
         "analysis_var": analysis_variable_name,
@@ -216,7 +216,8 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='%(name)s',
+    name='tripwire',
+    #name='%(name)s',
 )
 """
 
@@ -257,10 +258,10 @@ def generate_spec_file(
     collect_items = []
     if cli_entry_point := entry_points.get("cli"):
         cli_results = generate_cli_spec_section(
-            path,
-            script_name,
-            [cli_entry_point],
-            "1",
+            script_name=script_name,
+            entry_points=[cli_entry_point],
+            var_suffix="1",
+            paths=[],
         )
         sections.append(cli_results["data"])
         collect_items.append((
@@ -269,10 +270,10 @@ def generate_spec_file(
         ))
     if gui_entry_point := entry_points.get("gui"):
         gui_results = generate_gui_spec_section(
-            path,
-            f"{script_name}-gui",
-            [gui_entry_point],
-            "1",
+            script_name=f"{script_name}-gui",
+            entry_points=[gui_entry_point],
+            var_suffix="1",
+            paths=[],
         )
         sections.append(gui_results["data"])
         collect_items.append((

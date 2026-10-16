@@ -37,7 +37,7 @@ DEFAULT_CONFIG_DATA = """
 starting-tab = All
 debug = False
 
-[PLUGINS.uiucprescon.tripwire.gui.speedwagon_plugin]
+[PLUGINS.uiucprescon.tripwire.speedwagon_plugin.plugin]
 tripwire_workflows = True
 
 """.strip()
