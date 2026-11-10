@@ -1,4 +1,10 @@
-## v0.3.9.dev0 (2026-06-23)
+## v0.3.9 (2026-11-10)
+
+### Feat
+
+- implemented manifest-check speedwagon workflow
+- add optional speedwagon frontend
+- add optional speedwagon frontend
 
 ## v0.3.8 (2026-06-23)
 
