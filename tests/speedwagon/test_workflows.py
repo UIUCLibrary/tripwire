@@ -261,3 +261,25 @@ class TestValidateChecksumWorkflow:
         }
         workflow.create_new_task(task_builder,job_args)
         task_builder.add_subtask.assert_called_once()
+
+@pytest.mark.parametrize("return_values,expected", [
+    ([], True),
+    (["issue1"], False),
+])
+def test_validate_manifest_file_task(return_values,expected):
+    task = tripwire_workflows.validate_manifest_file_task(
+        manifest_tsv_file="some_manifest.tsv",
+        checking_strategy=Mock(return_value=return_values),
+    )
+    task.work()
+    assert task.task_result.data is expected
+
+def test_locate_manifest_files_task():
+    locating_strategy= Mock()
+    task = tripwire_workflows.locate_manifest_files_task(
+        manifest_tsv_file="some_manifest.tsv",
+        search_path="/path/to/search",
+        locating_strategy=locating_strategy
+    )
+    task.work()
+    locating_strategy.assert_called_once()
