@@ -276,7 +276,8 @@ def validate_directory_checksums_command(
             target_file.relative_to(path),
         )
         if not os.path.exists(target_file):
-            message = f'Expected file "{target_file.relative_to(path)}" - Failed: File does not exist'
+            message = (f'Expected file "{target_file.relative_to(path)}" - '
+                       f'Failed: File does not exist')
             logger.error(message)
             errors.append(message)
             continue

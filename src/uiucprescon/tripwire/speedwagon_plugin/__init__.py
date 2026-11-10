@@ -1,0 +1,1 @@
+"""Speedwagon plugin."""
