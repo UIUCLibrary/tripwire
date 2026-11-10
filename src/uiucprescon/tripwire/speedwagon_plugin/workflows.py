@@ -19,6 +19,7 @@ import uiucprescon
 from speedwagon import Workflow
 from speedwagon.tasks import Result, TaskBuilder
 import speedwagon.workflow
+from speedwagon.exceptions import SpeedwagonException
 from speedwagon.validators import JobOptionsType
 from speedwagon.workflow import AbsOutputOptionDataType
 import speedwagon.validators
@@ -233,10 +234,19 @@ class ManifestCheckWorkflow(Workflow):
     name = "manifest-check"
 
     def create_new_task(self, task_builder: TaskBuilder, job_args) -> None:
-        super().create_new_task(task_builder, job_args)
+        """Create a new task to validate manifest file."""
+        task_builder.add_subtask(
+            locate_manifest_files_task(
+                manifest_tsv_file=job_args["manifest"],
+                search_path=job_args["search_path"],
+            )
+        )
 
-    # active = False
-    # TODO: implement manifest-check workflow
+    def initial_task(self, task_builder: TaskBuilder, user_args: _T) -> None:
+        """Validate manifest file before running full validation."""
+        task_builder.add_subtask(
+            validate_manifest_file_task(user_args["Manifest tsv File"])
+        )
 
     def discover_task_metadata(
         self,
@@ -254,6 +264,8 @@ class ManifestCheckWorkflow(Workflow):
         Returns:
             sequence of task metadata
         """
+        if initial_results[0].data is False:
+            return []
         return [
             {
                 "manifest": user_args["Manifest tsv File"],
@@ -274,13 +286,37 @@ class ManifestCheckWorkflow(Workflow):
         return [manifest_tsv_file, search_path]
 
 
+@speedwagon.tasks.workflow_task("validate manifest", logger=logger)
+def validate_manifest_file_task(
+    manifest_tsv_file: str,
+    checking_strategy=manifest_check.get_issues_with_manifest_file,
+) -> bool:
+    if issues := checking_strategy(manifest_tsv_file):
+        error_report_list = "\n".join([f" * {issue}" for issue in issues])
+        report = f"""Unable to continue due to issues found with manifest file:
+        {error_report_list}
+        """
+        logger.error(report)
+        return False
+    return True
+
+
 @speedwagon.tasks.workflow_task(
     "Locate Files in Manifest", logger=manifest_check.logger
 )
-def locate_manifest_files_task(manifest_tsv_file: str, search_path: str):
-    manifest_check.locate_manifest_files(
-        pathlib.Path(manifest_tsv_file), pathlib.Path(search_path)
-    )
+def locate_manifest_files_task(
+    manifest_tsv_file: str,
+    search_path: str,
+    locating_strategy=manifest_check.locate_manifest_files,
+):
+    try:
+        locating_strategy(
+            pathlib.Path(manifest_tsv_file), pathlib.Path(search_path)
+        )
+    except UnicodeDecodeError as e:
+        raise SpeedwagonException(
+            "Check the manifest file is encoded in utf-8"
+        ) from e
 
 
 @speedwagon.tasks.workflow_task("Show Metadata", logger=logger)

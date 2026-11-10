@@ -21,7 +21,6 @@ import argcomplete
 
 logger = logging.getLogger(__name__)
 
-print("hello wolrd")
 
 def capture_log(
     logger: logging.Logger,

@@ -6,6 +6,8 @@ import pathlib
 import typing
 from typing import (
     Mapping,
+    Callable,
+    Optional,
     Set,
     MutableMapping,
     TextIO,
@@ -303,7 +305,7 @@ class PackageScanner:
         self.cache: typing.Dict[str, PackageScanner.Cache] = {}
         self._scanner = PackageScanner.scanner_klass(self.search_path)
 
-    def locate(self, file_name: str) -> typing.Optional[pathlib.Path]:
+    def locate(self, file_name: str) -> Optional[pathlib.Path]:
         if file_name in self.cache:
             self.cache[file_name]["expected"] = True
             return self.cache[file_name]["location"] / file_name
@@ -401,3 +403,59 @@ def locate_manifest_files(
             "Files found that were not included in manifest: \n%s",
             "\n".join(list_of_unexpected_files),
         )
+
+
+class ValidateBlockerException(StopIteration):
+    pass
+
+
+def check_utf_8(file_path: pathlib.Path) -> Optional[str]:
+    try:
+        with file_path.open("r", encoding="utf-8") as fp:
+            fp.read()
+            return None
+    except UnicodeDecodeError:
+        raise ValidateBlockerException("File not utf-8 encoded")
+
+
+def is_manifest_tsv(
+    file_path: pathlib.Path, test_strategy=get_manifest_type
+) -> Optional[str]:
+    try:
+        with file_path.open("r", encoding="utf-8") as fp:
+            test_strategy(fp=fp)
+        return None
+    except (ValueError, AttributeError):
+        return (
+            "Unable to determine TSV manifest type. A manifest file should "
+            "be a tsv file that contains a single row of column header."
+        )
+
+
+# The MANIFEST_VALIDATION_CHECKS is a list of callable functions that
+# return a error string or raise a ValidateBlockerException containing the
+# error.
+#
+# The function returns error string if there are additional checks after
+# current one that are worth performing as well.
+# The function raises ValidateBlockerException exception if no additional
+# checks should be performed.
+#
+# For example, if the file is the wrong type of file, an exception should
+# be raised because there is no reason to inspecting the contents of this file.
+MANIFEST_VALIDATION_CHECKS: List[Callable[[pathlib.Path], Optional[str]]] = [
+    check_utf_8,
+    is_manifest_tsv,
+]
+
+
+def get_issues_with_manifest_file(manifest_tsv_file: str, checks=None):
+    issues = set()
+    for check in checks if checks is not None else MANIFEST_VALIDATION_CHECKS:
+        try:
+            if issue := check(pathlib.Path(manifest_tsv_file)):
+                issues.add(issue)
+        except ValidateBlockerException as e:
+            issues.add(e)
+            return issues
+    return issues

@@ -1,5 +1,6 @@
 import io
 import pathlib
+from os import name
 from unittest.mock import Mock, MagicMock
 
 import pytest
@@ -219,3 +220,61 @@ class TestAbsManifestClasses:
     def test_get_manifest_type_unknown_throws(self):
         with pytest.raises(ValueError):
             manifest_check.get_manifest_type(io.StringIO("unknown format"))
+
+def test_check_utf_8_passed():
+    manifest_tsv = Mock(open=MagicMock())
+    assert manifest_check.check_utf_8(manifest_tsv) is None
+
+def test_check_utf_8_failed(monkeypatch):
+    mocked_open = MagicMock(name="open",
+            __enter__=Mock(
+                    return_value=Mock(
+                        name="__enter__",
+                        read=Mock(
+                            name="read", side_effect=lambda :b'\x80'.decode("utf8")
+                        )
+                )
+            )
+        )
+    mocked_open.read.side_effect = UnicodeDecodeError("utf-8", b"test", 0, 1, "")
+    manifest_tsv = Mock(
+        open=Mock(return_value=mocked_open)
+    )
+    with pytest.raises(manifest_check.ValidateBlockerException):
+        assert manifest_check.check_utf_8(manifest_tsv) is None
+
+def test_is_manifest_tsv_passes():
+    manifest_tsv = Mock(open=MagicMock())
+    assert manifest_check.is_manifest_tsv(manifest_tsv, test_strategy=lambda *_, **__: True) is None
+
+def test_is_manifest_tsv_fails():
+    manifest_tsv = Mock(open=MagicMock())
+    assert manifest_check.is_manifest_tsv(manifest_tsv, test_strategy=Mock(side_effect=AttributeError)) is not None
+
+def test_get_issues_with_manifest_file_no_issues():
+    assert manifest_check.get_issues_with_manifest_file("some_manifest_file", checks=[]) == set()
+
+def test_get_issues_with_manifest_file_that_returns():
+    checks = [
+        Mock(return_value="Issue found")
+    ]
+    assert len(manifest_check.get_issues_with_manifest_file("some_manifest_file", checks=checks)) > 0
+
+
+def test_get_issues_with_manifest_file_that_throws():
+    checks = [
+        Mock(side_effect=manifest_check.ValidateBlockerException("Issue found"))
+    ]
+    assert len(manifest_check.get_issues_with_manifest_file("some_manifest_file", checks=checks)) > 0
+
+
+
+def test_get_issues_with_manifest_file_throws_stops_other_checks():
+    other_check = Mock(return_value="Should not be called")
+    checks = [
+        Mock(side_effect=manifest_check.ValidateBlockerException("Issue found")),
+        other_check
+    ]
+    assert len(manifest_check.get_issues_with_manifest_file("some_manifest_file", checks=checks)) > 0
+    other_check.assert_not_called()
+
